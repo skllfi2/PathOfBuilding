@@ -20,6 +20,8 @@ local JEWEL_RADIUS_TINT_COMPARE_ONLY = { 0, 1, 0, 0.7 }
 
 local gemTooltip = require("Classes.GemTooltip")
 local TreeNodesRU = LoadModule("Data/TreeNodesRU")
+local TreePassivesRU_ok, TreePassivesRU = pcall(LoadModule, "Data/TreePassivesRU")
+local ModTranslationsRU = LoadModule("Data/ModTranslationsRU")
 local utf8 = require('lua-utf8')
 local function toLowerStr(s)
 	if not s then return "" end
@@ -1407,6 +1409,20 @@ function PassiveTreeViewClass:DoesNodeMatchSearchParams(node)
 		end
 	end
 
+	-- Check node description (RU stat lines from TreePassivesRU)
+	if (main and main.itemLanguage) ~= "EN" and TreePassivesRU_ok and TreePassivesRU then
+		local ruStats = TreePassivesRU:GetStats(node)
+		if ruStats then
+			for _, ruLine in ipairs(ruStats) do
+				err, needMatches = PCall(search, toLowerStr(ruLine), needMatches)
+				if err then return false end
+				if #needMatches == 0 then
+					return true
+				end
+			end
+		end
+	end
+
 	-- Check node type
 	err, needMatches = PCall(search, node.type:lower(), needMatches)
 	if err then return false end
@@ -1569,6 +1585,23 @@ function PassiveTreeViewClass:AddNodeTooltip(tooltip, node, build, returnEarly)
 
 	local function addModInfoToTooltip(node, i, line)
 		if node.mods[i] then
+			-- TZ-10: translate passive node stat lines for RU/DUAL.
+			-- 1. ModTranslationsRU:Translate(line);
+			-- 2. fallback TreePassivesRU:GetStats(node);
+			-- 3. otherwise keep the original English line.
+			local itemLang = (main and main.itemLanguage) or "DUAL"
+			local displayLine = line
+			if itemLang ~= "EN" and not launch.devModeAlt then
+				local ruLine = ModTranslationsRU and ModTranslationsRU:Translate(line)
+				if ruLine and ruLine ~= line then
+					displayLine = ruLine
+				elseif TreePassivesRU_ok and TreePassivesRU then
+					local ruStats = TreePassivesRU:GetStats(node)
+					if ruStats and #ruStats > 0 and i <= #ruStats then
+						displayLine = ruStats[i]
+					end
+				end
+			end
 			if launch.devModeAlt and node.mods[i].list then
 				-- Modifier debugging info
 				local modStr
@@ -1579,15 +1612,15 @@ function PassiveTreeViewClass:AddNodeTooltip(tooltip, node, build, returnEarly)
 					modStr = (modStr and modStr.."  " or "") .. colorCodes.NEGATIVE .. node.mods[i].extra
 				end
 				if modStr then
-					line = line .. "  " .. modStr
+					displayLine = displayLine .. "  " .. modStr
 				end
 			end
-			if line ~= " " and (node.mods[i].extra or not node.mods[i].list) then 
-				local line = colorCodes.UNSUPPORTED..line
-				line = main.notSupportedModTooltips and (line .. main.notSupportedTooltipText) or line
-				tooltip:AddLine(fontSizeBig, line, "FONTIN")
+			if displayLine ~= " " and (node.mods[i].extra or not node.mods[i].list) then
+				local coloredLine = colorCodes.UNSUPPORTED..displayLine
+				coloredLine = main.notSupportedModTooltips and (coloredLine .. main.notSupportedTooltipText) or coloredLine
+				tooltip:AddLine(fontSizeBig, coloredLine, "FONTIN")
 			else
-				tooltip:AddLine(fontSizeBig, colorCodes.MAGIC..line, "FONTIN")
+				tooltip:AddLine(fontSizeBig, colorCodes.MAGIC..displayLine, "FONTIN")
 			end
 		end
 	end
@@ -1823,15 +1856,29 @@ function PassiveTreeViewClass:AddCompareNodeTooltip(tooltip, node, build)
 	-- Node mods
 	if node.sd and node.sd[1] then
 		tooltip:AddLine(16, "")
+		local itemLang = (main and main.itemLanguage) or "DUAL"
+		local isRu = (itemLang ~= "EN") and not launch.devModeAlt
 		for i, line in ipairs(node.sd) do
+			local displayLine = line
+			if isRu then
+				local ruLine = ModTranslationsRU and ModTranslationsRU:Translate(line)
+				if ruLine and ruLine ~= line then
+					displayLine = ruLine
+				elseif TreePassivesRU_ok and TreePassivesRU then
+					local ruStats = TreePassivesRU:GetStats(node)
+					if ruStats and #ruStats > 0 and i <= #ruStats then
+						displayLine = ruStats[i]
+					end
+				end
+			end
 			if node.mods and node.mods[i] then
-				if line ~= " " and (node.mods[i].extra or not node.mods[i].list) then
-					tooltip:AddLine(fontSizeBig, colorCodes.UNSUPPORTED..line, "FONTIN")
+				if displayLine ~= " " and (node.mods[i].extra or not node.mods[i].list) then
+					tooltip:AddLine(fontSizeBig, colorCodes.UNSUPPORTED..displayLine, "FONTIN")
 				else
-					tooltip:AddLine(fontSizeBig, colorCodes.MAGIC..line, "FONTIN")
+					tooltip:AddLine(fontSizeBig, colorCodes.MAGIC..displayLine, "FONTIN")
 				end
 			else
-				tooltip:AddLine(fontSizeBig, colorCodes.MAGIC..line, "FONTIN")
+				tooltip:AddLine(fontSizeBig, colorCodes.MAGIC..displayLine, "FONTIN")
 			end
 		end
 	end
