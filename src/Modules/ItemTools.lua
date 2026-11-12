@@ -10,6 +10,7 @@ local m_max = math.max
 local m_floor = math.floor
 
 itemLib = { }
+local ModTranslationsRU = LoadModule("Data/ModTranslationsRU")
 
 -- Cluster-template positions, shared by the passive tree and the item editor.
 -- Index 0 is the entrance; half of totalIndicies is the back of the cluster.
@@ -438,10 +439,22 @@ function itemLib.formatModLine(modLine, dbMode)
 	if modLine.disabled then
 		return colorCodes.DISABLED .. line
 	end
+
+	-- Mod localization display layer (TZ-09): translate mod line for RU/DUAL;
+	-- fall back to the original English line when no translation exists.
+	local itemLang = (main and main.itemLanguage) or "DUAL"
+	local isRu = (itemLang ~= "EN") and not launch.devModeAlt
+	if isRu and ModTranslationsRU then
+		local ruLine = ModTranslationsRU:Translate(line)
+		if ruLine and ruLine ~= line then
+			line = ruLine
+		end
+	end
+
 	local colorCode
 	if modLine.extra then
 		colorCode = colorCodes.UNSUPPORTED
-		line = main.notSupportedModTooltips and (line .. main.notSupportedTooltipText) or line
+		line = main.notSupportedModTooltips and (line .. (isRu and " (Пока не поддерживается в PoB)" or main.notSupportedTooltipText)) or line
 		if launch.devModeAlt then
 			line = line .. "   ^1'" .. modLine.extra .. "'"
 		end
