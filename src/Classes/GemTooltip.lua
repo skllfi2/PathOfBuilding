@@ -117,7 +117,7 @@ local function addGemHeader(tooltip, gemInstance, grantedEffect)
 			displayType = GEM_TYPES_RU[displayType]
 		end
 	end
-	tooltip:AddLine(fontSizeBig, colorCodes.GEMINFO .. iconTagIndent .. displayType, "FONTIN SC")
+	tooltip:AddLine(fontSizeBig, (colorCodes.GEMINFO or "^x6F9A98") .. iconTagIndent .. displayType, "FONTIN SC")
 	tooltip:AddSeparator(8)
 
 	if gemInstance.gemData.tagString then
