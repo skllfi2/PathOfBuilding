@@ -19,6 +19,7 @@ local buySimilar = require("Classes.CompareBuySimilar")
 local addImplicit = require("Modules.AddImplicitPopup")
 local gemTooltip = require("Classes.GemTooltip")
 local ItemNamesRU = LoadModule("Data/ItemNamesRU")
+local ItemComparison = LoadModule("Modules/ItemComparison")
 local utf8 = require('lua-utf8')
 
 local rarityDropList = {
@@ -1482,6 +1483,12 @@ function ItemsTabClass:Draw(viewPort, inputEvents)
 	self.controls.scrollBarV.height = viewPort.height - 18
 	self.controls.scrollBarV.x = viewPort.x + viewPort.width - 18
 	self.controls.scrollBarV.y = viewPort.y
+	local tooltipOptionState = self.displayItemTooltipOptionState
+	if self.displayItem and (not tooltipOptionState
+		or tooltipOptionState.compactTooltips ~= main.compactTooltips
+		or tooltipOptionState.sideBySideItemComparison ~= main.sideBySideItemComparison) then
+		self:UpdateDisplayItemTooltip()
+	end
 	do
 		local maxY = select(2, self.lastSlot:GetPos()) + 24
 		local maxX = self.anchorDisplayItem:GetPos() + 462
@@ -2177,6 +2184,10 @@ function ItemsTabClass:UpdateDisplayItemTooltip()
 	self.displayItemTooltip:Clear()
 	self:AddItemTooltip(self.displayItemTooltip, self.displayItem)
 	self.displayItemTooltip.center = true
+	self.displayItemTooltipOptionState = {
+		compactTooltips = main.compactTooltips,
+		sideBySideItemComparison = main.sideBySideItemComparison,
+	}
 end
 
 function ItemsTabClass:ToggleDisplayItemModLine(modLine)
@@ -4273,16 +4284,80 @@ function ItemsTabClass:GetSocketDescriptionLine(item)
 	end
 	return line
 end
-function ItemsTabClass:AddItemTooltip(tooltip, item, slot, dbMode, maxWidth)
+-- Adds the currently equipped item for the selected comparison slot as a
+-- parallel side-by-side card. The returned slot is also used for the stat
+-- deltas, so SHIFT always switches both the card and the comparison output.
+function ItemsTabClass:AddSideBySideComparisonTooltip(tooltip, item, slot, isCompact)
+	if not main.sideBySideItemComparison then
+		return nil
+	end
+	local compareSlot = ItemComparison and ItemComparison.PickComparisonSlot(self, item, slot, isCompact, IsKeyDown("SHIFT"))
+	if not compareSlot then
+		return nil
+	end
+	local equippedItem = self.items[compareSlot.selItemId]
+	if not equippedItem or equippedItem == item then
+		return compareSlot
+	end
+
+	local isRu = (main.itemLanguage or "DUAL") ~= "EN"
+	local comparisonTooltip = new("Tooltip"):Tooltip()
+	local slotLabel = compareSlot.label or compareSlot.slotName
+	if isRu then
+		local ruSlotMap = {
+			["Weapon 1"] = "Оружие 1", ["Weapon 2"] = "Оружие 2",
+			["Weapon 1 Swap"] = "Оружие 1 (запас)", ["Weapon 2 Swap"] = "Оружие 2 (запас)",
+			["Helmet"] = "Шлем", ["Body Armour"] = "Доспех",
+			["Gloves"] = "Перчатки", ["Boots"] = "Обувь",
+			["Amulet"] = "Амулет", ["Ring 1"] = "Кольцо 1", ["Ring 2"] = "Кольцо 2",
+			["Belt"] = "Пояс", ["Flask 1"] = "Флакон 1", ["Flask 2"] = "Флакон 2",
+			["Flask 3"] = "Флакон 3", ["Flask 4"] = "Флакон 4", ["Flask 5"] = "Флакон 5",
+		}
+		slotLabel = ruSlotMap[slotLabel] or slotLabel
+	end
+	local compTitle = isRu and ("^7Сейчас надето (" .. slotLabel .. ")") or ("^7Currently Equipped (" .. slotLabel .. ")")
+
+	self:AddItemTooltip(comparisonTooltip, equippedItem, compareSlot, nil, ItemComparison.MAX_TOOLTIP_WIDTH, {
+		skipComparison = true,
+		skipStatDifferences = true,
+		skipChildTooltips = true,
+		cardWidthLimit = ItemComparison.MAX_TOOLTIP_WIDTH,
+		comparisonLabel = compTitle,
+	})
+	tooltip.comparisonTooltip = comparisonTooltip
+	return compareSlot
+end
+
+function ItemsTabClass:AddItemTooltip(tooltip, item, slot, dbMode, maxWidth, options)
+	options = options or { }
+	local isCompact = main.compactTooltips
+	if IsKeyDown("ALT") then
+		isCompact = not isCompact
+	end
 	local fontSizeSmall = main.showFlavourText and 16 or 14
 	local fontSizeBig = main.showFlavourText and 18 or 16
 	local fontSizeTitle = main.showFlavourText and 22 or 20
+	if isCompact then
+		fontSizeSmall, fontSizeBig, fontSizeTitle = 13, 15, 18
+	end
+	local sepGapLarge = isCompact and 6 or 14
 	local rarityCode = colorCodes[item.rarity]
-	tooltip.maxWidth = m_min(maxWidth or 600, 600) -- Cap very long lines. Can use a narrower width for small viewports
+	local sideBySideEnabled = main.sideBySideItemComparison and not options.skipComparison
+	local cardWidthLimit = options.cardWidthLimit or (sideBySideEnabled and ItemComparison and ItemComparison.MAX_TOOLTIP_WIDTH or nil)
+	local tooltipMaxWidth = maxWidth or 600
+	if cardWidthLimit then
+		tooltipMaxWidth = m_min(tooltipMaxWidth, cardWidthLimit)
+	end
+	tooltip.maxWidth = m_min(tooltipMaxWidth, 600) -- Cap very long lines. Can use a narrower width for small viewports
+	tooltip.maxCardWidth = cardWidthLimit
 	tooltip.tooltipHeader = item.rarity
 	tooltip.foilType = item.foilType
 	tooltip.center = true
 	tooltip.color = rarityCode
+	if options.comparisonLabel then
+		tooltip:AddLine(fontSizeBig, options.comparisonLabel, "FONTIN SC")
+		tooltip:AddSeparator(sepGapLarge)
+	end
 	-- Item name language (main.itemLanguage): "DUAL" (default), "RU", "EN"
 	local itemLang = main.itemLanguage or "DUAL"
 	local function ruNameOf(enName)
@@ -4763,6 +4838,16 @@ function ItemsTabClass:AddItemTooltip(tooltip, item, slot, dbMode, maxWidth)
 			end
 		end
 	end
+	-- Side-by-side card for the equipped item in the selected comparison slot.
+	-- This is intentionally built before the stat-difference section so the
+	-- option also works when stat differences are disabled.
+	local sideBySideSlot
+	if not options.skipComparison then
+		sideBySideSlot = self:AddSideBySideComparisonTooltip(tooltip, item, slot, isCompact)
+	end
+	if options.skipStatDifferences then
+		return
+	end
 	-- Stat differences
 	local itemTabHint = self.build.viewMode == "ITEMS" and "" or " in the Items tab"
 	if not self.showStatDifferences then
@@ -4772,7 +4857,7 @@ function ItemsTabClass:AddItemTooltip(tooltip, item, slot, dbMode, maxWidth)
 	elseif not (base.flask or base.tincture) then
 		tooltip:AddLine(14, colorCodes.TIP .. "Tip: Press Ctrl+D" .. itemTabHint .. " to disable the display of stat differences.")
 	end
-	self:AddItemStatDifferences(tooltip, item, base, slot)
+	self:AddItemStatDifferences(tooltip, item, base, slot, sideBySideSlot)
 
 	if launch.devModeAlt then
 		-- Modifier debugging info
@@ -4786,7 +4871,7 @@ end
 ---@param tooltip Tooltip
 ---@param item Item
 ---@param base any
-function ItemsTabClass:AddItemStatDifferences(tooltip, item, base, slot)
+function ItemsTabClass:AddItemStatDifferences(tooltip, item, base, slot, sideBySideSlot)
 	local calcFunc, calcBase = self.build.calcsTab:GetMiscCalculator()
 	if base.flask then
 		-- Special handling for flasks
@@ -5051,15 +5136,43 @@ function ItemsTabClass:AddItemStatDifferences(tooltip, item, base, slot)
 			local output = calcFunc(override)
 			return selItem, output
 		end
+		local isRu = (main.itemLanguage or "DUAL") ~= "EN"
+		local function ruSlotName(s)
+			if not s then return "" end
+			local ruMap = {
+				["Weapon 1"] = "Оружие 1", ["Weapon 2"] = "Оружие 2",
+				["Weapon 1 Swap"] = "Оружие 1 (запас)", ["Weapon 2 Swap"] = "Оружие 2 (запас)",
+				["Helmet"] = "Шлем", ["Body Armour"] = "Доспех",
+				["Gloves"] = "Перчатки", ["Boots"] = "Обувь",
+				["Amulet"] = "Амулет", ["Ring 1"] = "Кольцо 1", ["Ring 2"] = "Кольцо 2",
+				["Belt"] = "Пояс", ["Flask 1"] = "Флакон 1", ["Flask 2"] = "Флакон 2",
+				["Flask 3"] = "Флакон 3", ["Flask 4"] = "Флакон 4", ["Flask 5"] = "Флакон 5",
+				["Jewel"] = "Самоцвет", ["Jewel Socket"] = "Гнездо для самоцвета"
+			}
+			if ruMap[s] then return ruMap[s] end
+			local jNum = s:match("^Jewel (%d+)$")
+			if jNum then return "Самоцвет " .. jNum end
+			local jsNum = s:match("^Jewel Socket (%d+)$")
+			if jsNum then return "Гнездо для самоцвета " .. jsNum end
+			local pSlot, js = s:match("^(.-) Jewel Socket (%d+)$")
+			if pSlot and js then
+				return (ruMap[pSlot] or pSlot) .. " (Гнездо " .. js .. ")"
+			end
+			return s
+		end
+
 		local function addCompareForSlot(compareSlot, selItem, output)
 			if not selItem or not output then
 				selItem, output = getReplacedItemAndOutput(compareSlot)
 			end
 			local header
+			local slotDisp = isRu and ruSlotName(compareSlot.label or compareSlot.slotName) or (compareSlot.label or compareSlot.slotName)
 			if item == selItem then
-				header = "^7Removing this item from " .. compareSlot.label .. " will give you:"
+				header = isRu and ("^7Снятие этого предмета из " .. slotDisp .. " даст вам:") or ("^7Removing this item from " .. (compareSlot.label or compareSlot.slotName) .. " will give you:")
 			else
-				header = string.format("^7Equipping this item in %s will give you:%s", compareSlot.label or compareSlot.slotName, selItem and "\n(replacing " .. colorCodes[selItem.rarity] .. selItem.name .. "^7)" or "")
+				local replaceStr = selItem and ((isRu and "\n(заменяя " or "\n(replacing ") .. colorCodes[selItem.rarity] .. (isRu and (ItemNamesRU and ItemNamesRU:Get(selItem.name) or selItem.name) or selItem.name) .. "^7)") or ""
+				header = isRu and string.format("^7Установка этого предмета в %s даст вам:%s", slotDisp, replaceStr)
+					or string.format("^7Equipping this item in %s will give you:%s", slotDisp, replaceStr)
 			end
 			self.build:AddStatComparesToTooltip(tooltip, calcBase, output, header)
 		end
@@ -5067,9 +5180,12 @@ function ItemsTabClass:AddItemStatDifferences(tooltip, item, base, slot)
 		-- if we have a specific slot to compare to, and the user has "Show
 		-- tooltips only for affected slots" checked, we can just compare that
 		-- one slot
-		if main.slotOnlyTooltips and slot then
-			slot = type(slot) ~= "string" and slot or self.slots[slot]
-			if slot then addCompareForSlot(slot) end
+		if main.slotOnlyTooltips and (sideBySideSlot or slot) then
+			local compareSlot = sideBySideSlot or (type(slot) ~= "string" and slot or self.slots[slot])
+			if compareSlot and compareSlot.weaponSet then
+				compareSlot = self.slots[(compareSlot.slotName:gsub(" Swap", ""):gsub("^Weapon %d", (self.activeItemSet.useSecondWeaponSet and 2 or 1) == 2 and "%0 Swap" or "%0"))]
+			end
+			if compareSlot then addCompareForSlot(compareSlot) end
 			return
 		end
 

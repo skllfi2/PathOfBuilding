@@ -162,6 +162,7 @@ function main:Init()
 	self.dpiScaleOverridePercent = GetDPIScaleOverridePercent and GetDPIScaleOverridePercent() or 0
 	self.showWarnings = true
 	self.slotOnlyTooltips = true
+	self.sideBySideItemComparison = true
 	self.migrateEldritchImplicits = true
 	self.notSupportedModTooltips = true
 	self.notSupportedTooltipText = " ^8(Not supported in PoB yet)"
@@ -732,6 +733,9 @@ function main:LoadSettings(ignoreBuild)
 				if node.attrib.slotOnlyTooltips then
 					self.slotOnlyTooltips = node.attrib.slotOnlyTooltips == "true"
 				end
+				if node.attrib.sideBySideItemComparison then
+					self.sideBySideItemComparison = node.attrib.sideBySideItemComparison == "true"
+				end
 				if node.attrib.migrateEldritchImplicits then
 					self.migrateEldritchImplicits = node.attrib.migrateEldritchImplicits == "true"
 				end
@@ -934,6 +938,7 @@ function main:SaveSettings()
 		lastExportedWebsite = self.lastExportedWebsite,
 		showWarnings = tostring(self.showWarnings),
 		slotOnlyTooltips = tostring(self.slotOnlyTooltips),
+		sideBySideItemComparison = tostring(self.sideBySideItemComparison),
 		migrateEldritchImplicits = tostring(self.migrateEldritchImplicits),
 		notSupportedModTooltips = tostring(self.notSupportedModTooltips),
 		invertSliderScrollDirection = tostring(self.invertSliderScrollDirection),
@@ -1041,6 +1046,7 @@ function main:OpenOptionsPopup(savedState)
 		defaultItemAffixQuality = self.defaultItemAffixQuality or 0.5,
 		showWarnings = self.showWarnings,
 		slotOnlyTooltips = self.slotOnlyTooltips,
+		sideBySideItemComparison = self.sideBySideItemComparison,
 		migrateEldritchImplicits = self.migrateEldritchImplicits,
 		notSupportedModTooltips = self.notSupportedModTooltips,
 		invertSliderScrollDirection = self.invertSliderScrollDirection,
@@ -1058,18 +1064,19 @@ function main:OpenOptionsPopup(savedState)
 	}
 
 	-- NOTE: Height needs to be adjusted if more menu options are added
-	local oneColumnHeightReq = 850 -- Min height required to not split menu into two columns
+	local oneColumnHeightReq = 980 -- Min height required to fit single column comfortably without scrolling
 	local columnWidth = 600
-	
+
 	local startingY = 20
 	local currentY = startingY
 	local currentX = 0 -- initialized at `0`, only used for two-column layouts
 
-	-- Determine layout limits and modes
-	local useTwoColumns = self.screenH < oneColumnHeightReq and self.screenW >= columnWidth * 2
-	local useScrollBar = self.screenH < oneColumnHeightReq and not useTwoColumns
+	-- Determine layout limits and modes (always allow vertical scrollbar when single-column exceeds viewport cap)
+	local maxSingleColHeight = m_min(740, self.screenH - 30)
+	local useTwoColumns = false
+	local useScrollBar = true
 	local scrollBarWidth = useScrollBar and 18 or 0
-	
+
 	local popupWidth = useTwoColumns and columnWidth * 2 or columnWidth
 
 	-- Scrollbar anchor
@@ -1370,6 +1377,13 @@ function main:OpenOptionsPopup(savedState)
 	controls.slotOnlyTooltips.state = self.slotOnlyTooltips
 
 	nextRow()
+	controls.sideBySideItemComparison = new("CheckBoxControl"):CheckBoxControl({ "TOPLEFT", controls.sectionAnchor, "TOPLEFT" }, { currentX + defaultLabelPlacementX, currentY, 20 }, "^7Side-by-Side Item Comparison:", function(state)
+		self.sideBySideItemComparison = state
+	end)
+	controls.sideBySideItemComparison.tooltipText = "Shows the currently equipped item next to an unequipped item tooltip.\nIn compact mode, hold SHIFT to switch between paired slots such as Ring 1 and Ring 2."
+	controls.sideBySideItemComparison.state = self.sideBySideItemComparison
+
+	nextRow()
 	controls.migrateEldritchImplicits = new("CheckBoxControl"):CheckBoxControl({ "TOPLEFT", controls.sectionAnchor, "TOPLEFT" }, { currentX + defaultLabelPlacementX, currentY, 20 }, "^7Copy Eldritch Implicits onto Display Item:", function(state)
 		self.migrateEldritchImplicits = state
 	end)
@@ -1477,6 +1491,7 @@ function main:OpenOptionsPopup(savedState)
 		self.defaultItemAffixQuality = savedState.defaultItemAffixQuality
 		self.showWarnings = savedState.showWarnings
 		self.slotOnlyTooltips = savedState.slotOnlyTooltips
+		self.sideBySideItemComparison = savedState.sideBySideItemComparison
 		self.migrateEldritchImplicits = savedState.migrateEldritchImplicits
 		self.notSupportedModTooltips = savedState.notSupportedModTooltips
 		self.invertSliderScrollDirection = savedState.invertSliderScrollDirection
@@ -1499,11 +1514,14 @@ function main:OpenOptionsPopup(savedState)
 		main:ClosePopup()
 	end)
 	
-	local popupHeight = useScrollBar and (self.screenH - 20) or currentY + 30
-	
+	local popupHeight = useScrollBar and m_min(maxSingleColHeight, currentY + 55) or (currentY + 55)
+	if useScrollBar and (currentY + 55) <= maxSingleColHeight then
+		useScrollBar = false
+	end
+
 	if useScrollBar then
 		controls.scrollBar = new("ScrollBarControl"):ScrollBarControl({"TOPRIGHT", nil, "TOPRIGHT"}, {-2, 25, scrollBarWidth, popupHeight - 65}, 50, "VERTICAL", true)
-		controls.scrollBar:SetContentDimension(currentY, popupHeight - 65)
+		controls.scrollBar:SetContentDimension(currentY + 16, popupHeight - 65)
 	end
 	
 	local function scrollBarFunc()
@@ -1513,6 +1531,49 @@ function main:OpenOptionsPopup(savedState)
 	end
 
 	local popup = self:OpenPopup(popupWidth, popupHeight, "Options", controls, "save", nil, "cancel", useScrollBar and scrollBarFunc or nil)
+	popup.isOptionsPopup = true
+
+	local lastScreenW, lastScreenH = self.screenW, self.screenH
+	popup.resizeFunc = function()
+		if self.popups[1] == popup and (self.screenW ~= lastScreenW or self.screenH ~= lastScreenH) then
+			lastScreenW, lastScreenH = self.screenW, self.screenH
+			local currentState = {
+				nodePowerTheme = self.nodePowerTheme,
+				colorPositive = self.colorPositive,
+				colorNegative = self.colorNegative,
+				colorHighlight = self.colorHighlight,
+				showThousandsSeparators = controls.showThousandsSeparators and controls.showThousandsSeparators.state or self.showThousandsSeparators,
+				useCompactValues = controls.useCompactValues and controls.useCompactValues.state or self.useCompactValues,
+				thousandsSeparator = controls.thousandsSeparator and controls.thousandsSeparator.buf or self.thousandsSeparator,
+				decimalSeparator = controls.decimalSeparator and controls.decimalSeparator.buf or self.decimalSeparator,
+				showTitlebarName = controls.titlebarName and controls.titlebarName.state or self.showTitlebarName,
+				betaTest = controls.betaTest and controls.betaTest.state or self.betaTest,
+				edgeSearchHighlight = controls.edgeSearchHighlight and controls.edgeSearchHighlight.state or self.edgeSearchHighlight,
+				defaultGemQuality = controls.defaultGemQuality and tonumber(controls.defaultGemQuality.buf) or (self.defaultGemQuality or 0),
+				defaultCharLevel = controls.defaultCharLevel and tonumber(controls.defaultCharLevel.buf) or (self.defaultCharLevel or 1),
+				defaultItemAffixQuality = controls.defaultItemAffixQuality and tonumber(controls.defaultItemAffixQuality.buf) or (self.defaultItemAffixQuality or 0.5),
+				showWarnings = controls.showWarnings and controls.showWarnings.state or self.showWarnings,
+				slotOnlyTooltips = controls.slotOnlyTooltips and controls.slotOnlyTooltips.state or self.slotOnlyTooltips,
+				sideBySideItemComparison = controls.sideBySideItemComparison and controls.sideBySideItemComparison.state or self.sideBySideItemComparison,
+				migrateEldritchImplicits = controls.migrateEldritchImplicits and controls.migrateEldritchImplicits.state or self.migrateEldritchImplicits,
+				notSupportedModTooltips = controls.notSupportedModTooltips and controls.notSupportedModTooltips.state or self.notSupportedModTooltips,
+				invertSliderScrollDirection = controls.invertSliderScrollDirection and controls.invertSliderScrollDirection.state or self.invertSliderScrollDirection,
+				disableDevAutoSave = controls.disableDevAutoSave and controls.disableDevAutoSave.state or self.disableDevAutoSave,
+				showPublicBuilds = controls.showPublicBuilds and controls.showPublicBuilds.state or self.showPublicBuilds,
+				showFlavourText = controls.showFlavourText and controls.showFlavourText.state or self.showFlavourText,
+				showAnimations = controls.showAnimations and controls.showAnimations.state or self.showAnimations,
+				showAllItemAffixes = controls.showAllItemAffixes and controls.showAllItemAffixes.state or self.showAllItemAffixes,
+				disableScrollControlInteraction = controls.disableScrollControlInteraction and controls.disableScrollControlInteraction.state or self.disableScrollControlInteraction,
+				dpiScaleOverridePercent = self.dpiScaleOverridePercent,
+				uiFont = self.uiFont or UIFont.defaultPreset,
+				uiAccent = self.uiAccent or "PoE2 Gold",
+				uiLanguage = self.uiLanguage or "RU",
+				itemLanguage = self.itemLanguage or "DUAL",
+			}
+			self:ClosePopup()
+			self:OpenOptionsPopup(currentState)
+		end
+	end
 
 	local originalDrawControls = popup.DrawControls
 
