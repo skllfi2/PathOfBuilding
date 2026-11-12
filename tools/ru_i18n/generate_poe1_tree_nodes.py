@@ -84,18 +84,29 @@ def main():
     }
     by_name.update(overrides)
 
-    # Parse tree.lua to map skill IDs directly
-    tree_code = open(TREE_FILE, encoding="utf-8").read()
-    # Match pattern: ["skill"] = <id>, ... ["name"] = "<name>"
-    node_blocks = re.findall(r'\[\"skill\"\]\s*=\s*(\d+)[^}]+?\[\"name\"\]\s*=\s*\"([^\"]+)\"', tree_code)
-    by_skill = {}
-    for sid_str, name in node_blocks:
-        sid = int(sid_str)
-        clean_name = name.strip()
-        if clean_name in by_name:
-            by_skill[sid] = by_name[clean_name]
+    # Masteries and wheel small passives
+    try:
+        from mastery_dict import mastery_translations
+        by_name.update(mastery_translations)
+    except ImportError:
+        import sys
+        sys.path.append(os.path.dirname(__file__))
+        from mastery_dict import mastery_translations
+        by_name.update(mastery_translations)
 
-    print(f"Mapped {len(by_name)} unique names, {len(by_skill)} tree skill IDs")
+    # Parse all tree.lua files to map skill IDs directly across all versions
+    import glob
+    by_skill = {}
+    for t_path in glob.glob(r"f:\Development\Dev\mydev\PoB1Fork\PathOfBuilding\src\TreeData\*\tree.lua"):
+        t_code = open(t_path, encoding="utf-8", errors="ignore").read()
+        node_blocks = re.findall(r'\[\"skill\"\]\s*=\s*(\d+)[^}]+?\[\"name\"\]\s*=\s*\"([^\"]+)\"', t_code)
+        for sid_str, name in node_blocks:
+            sid = int(sid_str)
+            clean_name = name.strip()
+            if clean_name in by_name:
+                by_skill[sid] = by_name[clean_name]
+
+    print(f"Mapped {len(by_name)} unique names, {len(by_skill)} tree skill IDs across all tree versions")
 
     with open(OUT_FILE, "w", encoding="utf-8") as f:
         f.write('''-- Path of Building (PoE1)

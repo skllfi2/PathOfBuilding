@@ -78,6 +78,8 @@ local ok, err = pcall(function()
 	local bd = LoadModule("Data/CalcBreakdownRU")
 	local okSk, sk = pcall(LoadModule, "Data/SkillDescriptionsRU")
 	local okMod, mod = pcall(LoadModule, "Data/ModTranslationsRU")
+	local okNodes, nodes = pcall(LoadModule, "Data/TreeNodesRU")
+	local okTreeP, treeP = pcall(LoadModule, "Data/TreePassivesRU")
 
 	checkMap("UITranslationsRU.map", ui.map)
 	checkMap("ConfigTooltipsRU", cfg)
@@ -85,6 +87,20 @@ local ok, err = pcall(function()
 	checkMap("CalcBreakdownRU.parens", bd.parens)
 	if okSk and sk and sk.byDesc then checkMap("SkillDescriptionsRU.byDesc", sk.byDesc) end
 	if okMod and mod and mod.exact then checkMap("ModTranslationsRU.exact", mod.exact) end
+	if okNodes and nodes and nodes.byName then checkMap("TreeNodesRU.byName", nodes.byName) end
+	if okTreeP and treeP and treeP.statsBySkill then
+		local pCount = 0
+		for sid, statLines in pairs(treeP.statsBySkill) do
+			pCount = pCount + 1
+			for _, l in ipairs(statLines) do
+				if l:find("\239\191\189", 1, true) then
+					errors = errors + 1
+					out:write("ERR [REPLACEMENT_CHAR] TreePassivesRU | skill " .. tostring(sid) .. "\n")
+				end
+			end
+		end
+		out:write(string.format("CHECKED TreePassivesRU: %d skills\n", pCount))
+	end
 
 	-- Check sidebar label widths from BuildDisplayStats.lua (when renderer is active)
 	local bdsFile = io.open(SRC .. "Modules/BuildDisplayStats.lua", "r")
