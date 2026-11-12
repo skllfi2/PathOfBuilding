@@ -23,6 +23,8 @@ require("Modules.ItemTools")
 require("Modules.CalcTools")
 LoadModule("Modules/PantheonTools")
 LoadModule("Modules/BuildSiteTools")
+UIFont = LoadModule("Modules/UIFont")
+WindowState = LoadModule("Modules/WindowState")
 RULogger = LoadModule("Modules/RULogger")
 
 -- Load as global so other modules can access the same instance
@@ -172,6 +174,8 @@ function main:Init()
 	self.uiLanguage = "RU"
 	self.itemLanguage = "DUAL"
 	self.logUntranslatedRU = false
+	self.uiFont = UIFont.defaultPreset
+	self.uiAccent = "PoE2 Gold"
 	if RULogger then
 		RULogger.Init()
 	end
@@ -205,6 +209,9 @@ function main:Init()
 	if self.userPath then
 		self:ChangeUserPath(self.userPath, ignoreBuild)
 	end
+	-- The window already exists at this point, so the stored geometry can be
+	-- restored (the settings have been read by ChangeUserPath above).
+	self:ApplyWindowState()
 
 	---@type ItemDBData
 	self.uniqueDB = { list = { }, byTitle = { }, loading = true }
@@ -649,6 +656,12 @@ function main:LoadSettings(ignoreBuild)
 						self.itemLanguage = lang
 					end
 				end
+				if node.attrib.uiFont and UIFont.IsValidPreset(node.attrib.uiFont) then
+					self.uiFont = node.attrib.uiFont
+				end
+				if node.attrib.uiAccent then
+					self.uiAccent = node.attrib.uiAccent
+				end
 				if node.attrib.buildSortMode then
 					self.buildSortMode = node.attrib.buildSortMode
 				end
@@ -750,8 +763,56 @@ function main:LoadSettings(ignoreBuild)
 					self.dpiScaleOverridePercent = tonumber(node.attrib.dpiScaleOverridePercent) or 0
 					SetDPIScaleOverridePercent(self.dpiScaleOverridePercent)
 				end
+				if type(WindowState) == "table" then
+					self.windowState = WindowState.Read(node.attrib)
+				end
 			end
 		end
+	end
+end
+
+-- Applies the persisted customization fields right after LoadSettings has
+-- read them: the accent switches live through ThemeFluent, while the font
+-- preset can only sync the disk state (font slots reload on restart).
+function main:ApplyUICustomization()
+	if type(UIFont) == "table" then
+		UIFont.Sync(self.uiFont)
+	else
+		ConPrintf("UIFont module unavailable; font preset sync skipped")
+	end
+	local ThemeFluent = LoadModule("Modules/ThemeFluent")
+	if ThemeFluent and ThemeFluent.SetAccent then
+		if not ThemeFluent:SetAccent(self.uiAccent) then
+			self.uiAccent = ThemeFluent:GetAccent()
+			ConPrintf("Unknown uiAccent value; reverted to '%s'", self.uiAccent)
+		end
+	end
+end
+
+-- Restores the window geometry stored in Settings.xml (position, size and
+-- the maximised flag). The stored position is validated against the current
+-- virtual desktop: a window that would end up completely off-screen (for
+-- example after a second monitor has been disconnected) is moved back into
+-- the visible area instead.
+function main:ApplyWindowState()
+	if self.windowStateApplied or type(WindowState) ~= "table" then
+		return
+	end
+	if not self.windowState then
+		return
+	end
+	self.windowStateApplied = true
+	local bounds = WindowState.GetBounds()
+	if not bounds then
+		ConPrintf("Window state: screen bounds are unavailable, saved geometry ignored")
+		return
+	end
+	local state, corrected = WindowState.Clamp(self.windowState, bounds)
+	if corrected then
+		ConPrintf("Window state: saved position was outside the visible screen and has been adjusted")
+	end
+	if WindowState.Apply(state) then
+		self.windowState = state
 	end
 end
 
@@ -851,7 +912,7 @@ function main:SaveSettings()
 		t_insert(sharedItemList, set)
 	end
 	t_insert(setXML, sharedItemList)
-	t_insert(setXML, { elem = "Misc", attrib = {
+	local miscAttrib = {
 		buildSortMode = self.buildSortMode,
 		connectionProtocol = tostring(launch.connectionProtocol),
 		proxyURL = launch.proxyURL,
@@ -885,7 +946,24 @@ function main:SaveSettings()
 		dpiScaleOverridePercent = tostring(self.dpiScaleOverridePercent),
 		uiLanguage = self.uiLanguage or "RU",
 		itemLanguage = self.itemLanguage or "DUAL",
-	} })
+		uiFont = self.uiFont or "authentic",
+		uiAccent = self.uiAccent or "PoE2 Gold",
+	}
+	-- Persist the current window geometry (position, size, maximised flag) so
+	-- that it can be restored on the next start
+	if type(WindowState) == "table" then
+		local captured = WindowState.Capture()
+		if captured then
+			if captured.maximised and self.windowState then
+				-- Keep the last known normal size while the window is maximised
+				captured.width = self.windowState.width
+				captured.height = self.windowState.height
+			end
+			self.windowState = captured
+			WindowState.Write(miscAttrib, captured)
+		end
+	end
+	t_insert(setXML, { elem = "Misc", attrib = miscAttrib })
 	local res, errMsg = common.xml.SaveXMLFile(setXML, self.userPath.."Settings.xml")
 	if not res then
 		launch:ShowErrMsg("Error saving 'Settings.xml': %s", errMsg)
@@ -936,6 +1014,8 @@ function main:ChangeUserPath(newUserPath, ignoreBuild)
 	MakeDir(self.buildPath)
 	self:LoadSettings(ignoreBuild)
 	self:LoadSharedItems()
+	self:ApplyUICustomization()
+	self:ApplyWindowState()
 end
 --- Opens the popup for the "Options" menu
 --- @param savedState table|nil optional passing of saved values, in case of reopening `{nodePowerTheme, colorPositive, ...}`
@@ -971,6 +1051,8 @@ function main:OpenOptionsPopup(savedState)
 		showAllItemAffixes = self.showAllItemAffixes,
 		disableScrollControlInteraction = self.disableScrollControlInteraction,
 		dpiScaleOverridePercent = self.dpiScaleOverridePercent,
+		uiFont = self.uiFont or UIFont.defaultPreset,
+		uiAccent = self.uiAccent or "PoE2 Gold",
 		uiLanguage = self.uiLanguage or "RU",
 		itemLanguage = self.itemLanguage or "DUAL",
 	}
@@ -1013,6 +1095,31 @@ function main:OpenOptionsPopup(savedState)
 	local defaultLabelPlacementX = columnWidth*0.45
 
 	drawSectionHeader("app", "Application options")
+
+	nextRow()
+	controls.uiFont = new("DropDownControl"):DropDownControl({ "TOPLEFT", controls.sectionAnchor, "TOPLEFT" }, { currentX + defaultLabelPlacementX, currentY, 190, 18 }, UIFont.GetPresetList(), function(index, value)
+		self.uiFont = value.id
+	end)
+	controls.uiFontLabel = new("LabelControl"):LabelControl({ "RIGHT", controls.uiFont, "LEFT" }, { defaultLabelSpacingPx, 0, 0, 16 }, "^7UI Font:")
+	controls.uiFont.tooltipText = "Font preset for the interface.\nSwitching the preset requires restarting Path of Building."
+	controls.uiFont:SelByValue(savedState.uiFont, "id")
+
+	nextRow()
+	controls.uiAccent = new("DropDownControl"):DropDownControl({ "TOPLEFT", controls.sectionAnchor, "TOPLEFT" }, { currentX + defaultLabelPlacementX, currentY, 120, 18 }, {
+		{ label = "PoE2 Gold", accent = "PoE2 Gold" },
+		{ label = "Fluent Blue", accent = "Fluent Blue" },
+		{ label = "Crimson", accent = "Crimson" },
+		{ label = "Emerald", accent = "Emerald" },
+	}, function(index, value)
+		self.uiAccent = value.accent
+		local ThemeFluent = LoadModule("Modules/ThemeFluent")
+		if ThemeFluent and ThemeFluent.SetAccent then
+			ThemeFluent:SetAccent(value.accent)
+		end
+	end)
+	controls.uiAccentLabel = new("LabelControl"):LabelControl({ "RIGHT", controls.uiAccent, "LEFT" }, { defaultLabelSpacingPx, 0, 0, 16 }, "^7Accent Color:")
+	controls.uiAccent.tooltipText = "Accent colour of the Fluent UI theme (buttons, checkboxes, slider fill, selection highlights).\nSwitches live; the setting is saved with Options."
+	controls.uiAccent:SelByValue(savedState.uiAccent, "accent")
 
 	controls.uiLanguage = new("DropDownControl"):DropDownControl({ "TOPLEFT", controls.sectionAnchor, "TOPLEFT" }, { currentX + defaultLabelPlacementX, currentY, 200, 18 }, {
 		{ label = "Русский (Russian)", lang = "RU" },
@@ -1330,8 +1437,25 @@ function main:OpenOptionsPopup(savedState)
 			main:SetManifestBranch(self.betaTest and "beta" or "master")
 		end
 		SetDPIScaleOverridePercent(self.dpiScaleOverridePercent)
+		local fontChanged = self.uiFont ~= savedState.uiFont
+		local fontError
+		if fontChanged and type(UIFont) == "table" then
+			local ok, err = UIFont.ApplyPreset(self.uiFont)
+			if not ok then
+				fontError = "Failed to apply the '"..UIFont.GetLabel(self.uiFont).."' font preset:\n"..tostring(err)
+			end
+		end
 		main:ClosePopup()
 		main:SaveSettings()
+		if fontError then
+			self:OpenMessagePopup("UI Font Error", fontError)
+		elseif fontChanged then
+			self:OpenConfirmPopup("UI Font Changed", "The font preset was changed to '"..UIFont.GetLabel(self.uiFont).."'.\nRestart Path of Building to apply it.", "Restart now", function()
+				Restart()
+			end, "Later", function()
+				-- nothing else to do
+			end)
+		end
 	end)
 	controls.cancel = new("ButtonControl"):ButtonControl({ "BOTTOM", nil, "BOTTOM" }, {45, -10, 80, 20}, "Cancel", function()
 		self.nodePowerTheme = savedState.nodePowerTheme
@@ -1364,8 +1488,14 @@ function main:OpenOptionsPopup(savedState)
 		self.disableScrollControlInteraction = savedState.disableScrollControlInteraction
 		self.dpiScaleOverridePercent = savedState.dpiScaleOverridePercent
 		SetDPIScaleOverridePercent(self.dpiScaleOverridePercent)
+		self.uiFont = savedState.uiFont
+		self.uiAccent = savedState.uiAccent
 		self.uiLanguage = savedState.uiLanguage
 		self.itemLanguage = savedState.itemLanguage
+		local ThemeFluent = LoadModule("Modules/ThemeFluent")
+		if ThemeFluent and ThemeFluent.SetAccent then
+			ThemeFluent:SetAccent(self.uiAccent)
+		end
 		main:ClosePopup()
 	end)
 	
