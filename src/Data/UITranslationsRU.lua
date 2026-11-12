@@ -4848,6 +4848,227 @@ UITranslationsRU.map = {
     ["Mult"] = "Множ.",
     ["Crit"] = "Крит",
     ["Final"] = "Итог",
+    -- TZ-02: PoE1 AST dict misses (Tooltip + UI static strings)
+    -- Tooltip (TradeQuery / BuildListControl)
+    ["The Trader feature supports two modes of operation depending on the authorization availability."] = "Функция торговли поддерживает два режима работы в зависимости от доступности авторизации.",
+    ["You can click this button to authorize PoB by logging in."] = "Нажмите эту кнопку, чтобы авторизовать PoB, войдя в аккаунт.",
+    ["Session Mode"] = "Режим сессии",
+    ["- Requires authorization on pathofexile.com."] = "- Требует авторизации на pathofexile.com.",
+    ["- You can search, compare, and quickly import items without leaving Path of Building."] = "- Можно искать, сравнивать и быстро импортировать предметы, не покидая Path of Building.",
+    ["- You can select an item and search it directly."] = "- Можно выбрать предмет и искать его напрямую.",
+    ["- You can generate and perform searches for the private leagues you are participating."] = "- Можно создавать и выполнять поиски для приватных лиг, в которых вы участвуете.",
+    ["No Session Mode"] = "Без режима сессии",
+    ["- Doesn't require authorization."] = "- Не требует авторизации.",
+    ["- You cannot search and compare items in Path of Building."] = "- Поиск и сравнение предметов в Path of Building недоступны.",
+    ["- You can generate weighted search URLs but have to visit the trade site and manually import items."] = "- Можно создавать взвешенные ссылки поиска, но придётся зайти на сайт торговли и вручную импортировать предметы.",
+    ["- You can only generate weighted searches for public leagues. (Generated searches can be modified"] = "- Взвешенные поиски можно создавать только для публичных лиг. (Созданные поиски можно изменить",
+    ["on trade site to work on other leagues and realms)"] = "на сайте торговли, чтобы они работали в других лигах и регионах)",
+    ["Weighted Sum searches will always sort using descending weighted sum"] = "Поиски взвешенной суммы всегда сортируются по убыванию взвешенной суммы",
+    ["Additional post filtering options can be done these include:"] = "Доступны дополнительные варианты пост-фильтрации, в том числе:",
+    ["Highest Stat Value - Sort from highest to lowest Stat Value change of equipping item"] = "Наибольшая ценность статов — сортировка по изменению ценности статов при надевании предмета, от большей к меньшей",
+    ["Highest Stat Value / Price - Sorts from highest to lowest by estimated Stat Value per currency"] = "Наибольшая ценность статов / цена — сортировка по расчётной ценности статов за валюту, от большей к меньшей",
+    ["Lowest Price - Sorts from lowest to highest price of retrieved items"] = "Наименьшая цена — сортировка найденных предметов по цене от меньшей к большей",
+    ["Highest Weight - Displays the order retrieved from trade"] = "Наибольший вес — порядок, как получен с сайта торговли",
+    ["Creates a weighted search to find the highest Stat Value items for this slot."] = "Создаёт взвешенный поиск предметов с наибольшей ценностью статов для этого слота.",
+    ["Note that even if you are authenticated, you can click this button again to show the search link."] = "Обратите внимание: даже если вы авторизованы, можно снова нажать эту кнопку, чтобы получить ссылку поиска.",
+    ["If you have additional requirements that the trade tool doesn't cover (e.g. Adorned Magic jewels),"] = "Если у вас есть дополнительные требования, которые не покрывает инструмент поиска (напр., украшения Adorned Magic),",
+    ["you can add them, copy the link here, and press \"Price Item\" to evaluate the items."] = "добавьте их, скопируйте ссылку сюда и нажмите «Price Item», чтобы оценить предметы.",
+    ["Sort folders by name or date modified."] = "Сортировать папки по имени или дате изменения.",
+    -- UI
+    ["Hide Ineligible Configurations"] = "Скрыть недоступные конфигурации",
+    ["Imported build"] = "Импортированный билд",
+    ["Could not import character"] = "Не удалось импортировать персонажа",
+    ["not typed manually."] = "не вводится вручную.",
+    ["Tip: After you finish importing a character, make sure you update the bandit choice,"] = "Совет: после импорта персонажа не забудьте обновить выбор бандита,",
+    ["as it can only be imported by logging in above."] = "так как он импортируется только через вход в аккаунт выше.",
+    ["Error creating link:"] = "Ошибка создания ссылки:",
+    ["Double-click an item from one of the lists,"] = "Дважды щёлкните предмет в одном из списков,",
+    ["or copy and paste an item from in game"] = "или скопируйте предмет из игры и вставьте его",
+    ["(hover over the item and Ctrl+C) to view or edit"] = "(наведите курсор на предмет и нажмите Ctrl+C), чтобы просмотреть или изменить",
+    ["the item and add it to your build. You can"] = "предмет и добавить его в билд. Также можно",
+    ["also clone an item within Path of Building by"] = "клонировать предмет внутри Path of Building,",
+    ["copying and pasting it with Ctrl+C and Ctrl+V."] = "скопировав и вставив его через Ctrl+C и Ctrl+V.",
+    ["You can Control + Click an item to equip it, or"] = "Можно экипировать предмет щелчком с Ctrl или",
+    ["drag it onto the slot.  This will also add it to"] = "перетащить его в слот. Это также добавит предмет",
+    ["your build if it's from the unique/template list."] = "в билд, если он из списка уникальных/шаблонных.",
+    ["If there's 2 slots an item can go in,"] = "Если предмет можно поместить в 2 слота,",
+    ["holding Shift will put it in the second."] = "удержание Shift поместит его во второй.",
+    ["Timeless Jewel"] = "Вечный самоцвет",
+    ["2 Added Passive Skills are Jewel Sockets"] = "2 добавленных пассивных умения являются гнёздами самоцветов",
+    ["1 Added Passive Skill is a Jewel Socket"] = "1 добавленное пассивное умение является гнездом самоцветов",
+    ["Adding this mod will give:"] = "Добавление этого мода даст:",
+    ["Abyssal Socket"] = "Гнездо Бездны",
+    ["Weapon 1 Swap"] = "Оружие 1 (замена)",
+    ["Weapon 2 Swap"] = "Оружие 2 (замена)",
+    ["All skills:"] = "Все умения:",
+    ["Show all skills, not just those used by this build."] = "Показывать все умения, а не только используемые в этом билде.",
+    ["Enchant Item"] = "Зачаровать предмет",
+    ["No Anoint"] = "Без намазывания",
+    ["glimpse of chaos"] = "проблеск хаоса",
+    ["This Items Implicits Cannot Be Changed"] = "Неявные свойства этого предмета нельзя изменить",
+    ["Corrupt Item"] = "Осквернить предмет",
+    ["Crafting Bench"] = "Верстак для ремёсел",
+    ["Delve Drop-restricted"] = "Выпадает только в Спуске",
+    ["Incursion Drop-restricted"] = "Выпадает только во Вторжении",
+    ["Elemental Ailments"] = "Стихийные состояния",
+    ["Maximum Life"] = "Макс. здоровье",
+    ["Critical Strike Multiplier"] = "Множитель критического удара",
+    ["Critical Strike Chance"] = "Шанс критического удара",
+    ["in the Items tab"] = "на вкладке «Предметы»",
+    ["Iron Flask"] = "Железная фиала",
+    ["Deactivating this flask will give you:"] = "Деактивация фиалы даст:",
+    ["Activating this flask will give you:"] = "Активация фиалы даст:",
+    ["Effective tincture stats:"] = "Эффективные свойства настойки:",
+    ["Deactivating this tincture will give you:"] = "Деактивация настойки даст:",
+    ["Activating this tincture will give you:"] = "Активация настойки даст:",
+    ["(replacing "] = "(заменяя ",
+    ["(replacing"] = "(заменяя",
+    ["Copy Tree"] = "Копировать дерево",
+    ["Rename Tree"] = "Переименовать дерево",
+    ["Can support ^7Strength ^7threshold jewels"] = "Поддерживает ^7пороговые самоцветы ^7силы",
+    ["Can support ^7Dexterity ^7threshold jewels"] = "Поддерживает ^7пороговые самоцветы ^7ловкости",
+    ["Can support ^7Intelligence ^7threshold jewels"] = "Поддерживает ^7пороговые самоцветы ^7интеллекта",
+    ["or the nodes leading to it"] = "или ведущие к нему узлы",
+    ["Available Mastery node options are:"] = "Доступные варианты узла мастерства:",
+    ["Show Masteries:"] = "Показывать мастерства:",
+    ["Weapon 1 (Swap)"] = "Оружие 1 (замена)",
+    ["Weapon 2 (Swap)"] = "Оружие 2 (замена)",
+    ["Awakened Maximum"] = "Пробуждённый макс.",
+    ["Level 1"] = "Уровень 1",
+    ["Select the item in which this skill is socketed."] = "Выберите предмет, в который вставлено это умение.",
+    ["This will allow the skill to benefit from modifiers on the item that affect socketed gems."] = "Это позволит умению получать бонусы от модов предмета, действующих на вставленные камни.",
+    ["No item is equipped in this slot."] = "В этом слоте нет предмета.",
+    ["This item cannot have sockets"] = "Этот предмет не может иметь гнёзд",
+    ["This is a special group created for the enemy explosion effect,"] = "Это особая группа, созданная для эффекта взрыва врага,",
+    ["which comes from the following sources:"] = "который приходит из следующих источников:",
+    ["You cannot add support gems to this group, but support gems in"] = "Добавить камни поддержки в эту группу нельзя, но камни поддержки в",
+    ["will automatically apply to the skill."] = "любой другой группе будут автоматически применяться к умению.",
+    ["Specify maximum number of item pages to retrieve per search from PoE Trade."] = "Укажите максимальное число страниц предметов, получаемых за один поиск с PoE Trade.",
+    ["Each page fetches up to 10 items."] = "Каждая страница содержит до 10 предметов.",
+    ["Acceptable Range is: 1 to 10"] = "Допустимый диапазон: от 1 до 10",
+    ["Adjust search weights"] = "Настроить веса поиска",
+    ["Sort By:"] = "Сортировка:",
+    ["Other trades:"] = "Другие торги:",
+    ["Copy Current"] = "Копировать текущий",
+    ["Control + click to open in web-browser"] = "Ctrl + щелчок — открыть в браузере",
+    ["You must log in to use the search feature"] = "Для функции поиска необходимо войти в аккаунт",
+    ["Enter a valid trade URL"] = "Введите корректную ссылку торговли",
+    ["Requires an active Jewel Socket"] = "Требуется активное гнездо самоцвета",
+    ["<< Search"] = "<< Поиск",
+    ["Import Item"] = "Импорт предмета",
+    ["Includes corruption implicit modifiers in the weighted sum."] = "Включает неявные моды осквернения во взвешенную сумму.",
+    ["Note that there is a maximum search filter count which means this might cause other weights to not be included."] = "Учтите: число фильтров поиска ограничено, поэтому некоторые веса могут не попасть в поиск.",
+    ["Ring Slot:"] = "Слот кольца:",
+    ["Scourge Mods:"] = "Моды Скверны:",
+    ["Talisman Mods:"] = "Моды Талисманов:",
+    ["Whether talisman enchant mods should be included. Disabled by default due to the maximum filter limit."] = "Включать ли зачарования талисманов. По умолчанию отключено из-за лимита фильтров.",
+    ["Eldritch Mods:"] = "Потусторонние моды:",
+    ["# of Links:"] = "Кол-во связей:",
+    ["Include all Watcher's Eye mods:"] = "Включать все моды Глаза наблюдателя:",
+    ["Remove All Tattoos"] = "Убрать все татуировки",
+    ["Hide Power Report"] = "Скрыть отчёт мощности",
+    ["Show Power Report"] = "Показать отчёт мощности",
+    ["The build you are trying to load uses an unrecognised version of the passive skill tree."] = "Загружаемый билд использует нераспознанную версию дерева пассивных умений.",
+    ["You may need to update the program before loading this build."] = "Возможно, перед загрузкой этого билда нужно обновить программу.",
+    ["Note that some or all of the passives may have been de-allocated due to changes in the tree."] = "Учтите: из-за изменений дерева некоторые или все пассивные умения могли быть сняты.",
+    ["You can switch back to the old tree using the tree selector at the bottom left."] = "Вернуться к старому дереву можно через выбор дерева внизу слева.",
+    ["Convert will replace your current tree."] = "«Конвертировать» заменит текущее дерево.",
+    ["Copy + Convert will backup your current tree."] = "«Копировать + Конвертировать» сохранит резервную копию текущего дерева.",
+    ["This action cannot be undone."] = "Это действие нельзя отменить.",
+    ["Reset Node"] = "Сбросить узел",
+    ["Replace Modifier of Node"] = "Заменить модификатор узла",
+    ["Show Legacy Tattoos:"] = "Показывать устаревшие татуировки:",
+    ["Heroic Tragedy"] = "Героическая трагедия",
+    ["Festering Vengeance"] = "Гниющая месть",
+    ["Extinguishing Grasp"] = "Гасящая хватка",
+    ["Baleful Dominion"] = "Зловещее владычество",
+    ["Destructive Aspiration"] = "Разрушительное стремление",
+    ["Reclaimed Malevolence"] = "Возвращённая злоба",
+    ["Vorana (Black Scythe Training)"] = "Ворана (Обучение Чёрной косы)",
+    ["Uhtred (Celestial Mathematics)"] = "Утред (Небесная математика)",
+    ["Medved (The Unbreaking Circle)"] = "Медвед (Нерушимый круг)",
+    ["Tecrod (Overwhelming Hate)"] = "Текрод (Подавляющая ненависть)",
+    ["Ulaman (Weighted Exchange)"] = "Уламан (Взвешенный обмен)",
+    ["Kurgal (Reconstructed Essence)"] = "Кургал (Восстановленная суть)",
+    ["Amanamu (The Loyal Few)"] = "Аманаму (Верные немногие)",
+    ["Mana Cost (legacy)"] = "Затраты маны (устар.)",
+    ["Mana Cost Efficiency"] = "Эффективность затрат маны",
+    ["All Sockets"] = "Все гнёзда",
+    ["Socket Jewel:"] = "Вставить самоцвет:",
+    ["Double clicking a result also equips the jewel in its jewel socket."] = "Двойной щелчок по результату также вставляет самоцвет в его гнездо.",
+    ["The socket must be allocated on your current tree; if it isn't, the jewel is only added to your item list."] = "Гнездо должно быть занято на текущем дереве; иначе самоцвет лишь добавится в список предметов.",
+    ["A jewel already in that socket is replaced."] = "Самоцвет, уже вставленный в это гнездо, будет заменён.",
+    ["Required ascendancy outcome:"] = "Требуемый результат возвышения:",
+    ["Secondary Node Weight:"] = "Вес вторичного узла:",
+    ["Fallback Nodes"] = "Запасные узлы",
+    ["Total Minimum Weight:"] = "Общий минимальный вес:",
+    ["Optional: Only show results where total weight meets or exceeds this value."] = "Необязательно: показывать только результаты с общим весом не ниже этого значения.",
+    ["Open Trade URL"] = "Открыть ссылку торговли",
+    ["Open Next Trade URL"] = "Открыть следующую ссылку торговли",
+    ["Click to generate and open a trade URL for searching for jewels in this list."] = "Щёлкните, чтобы создать и открыть ссылку торговли для поиска самоцветов из этого списка.",
+    ["Error fetching league list, default league will be used"] = "Ошибка получения списка лиг, будет использована лига по умолчанию",
+    ["Search Maximum Amount:"] = "Максимальное кол-во поиска:",
+    ["Searing Exarch"] = "Пылающий Архонт",
+    ["Eater of Worlds"] = "Пожиратель Миров",
+    ["Add Implicit to Item"] = "Добавить неявный мод на предмет",
+    ["Info:^7 You are trying to load a build created for a version of Path of Exile that is"] = "Инфо:^7 Вы пытаетесь загрузить билд, созданный для версии Path of Exile,",
+    ["not supported by us. You will have to convert it to the current game version to load it."] = "которая нами не поддерживается. Для загрузки его нужно конвертировать в текущую версию игры.",
+    ["To use a build newer than the current supported game version, you may have to update."] = "Для использования билда новее поддерживаемой версии игры может потребоваться обновление.",
+    ["To use a build older than the current supported game version, we recommend loading it"] = "Билд старше поддерживаемой версии игры рекомендуем загружать",
+    ["in an older version of Path of Building Community instead."] = "в более старой версии Path of Building Community.",
+    ["For example, if the passive tree has changed, then some passives may be deallocated."] = "Например, если дерево пассивных умений изменилось, некоторые пассивные умения могут быть сняты.",
+    ["You should create a backup copy of the build before proceeding."] = "Перед продолжением создайте резервную копию билда.",
+    ["Sort By Name"] = "Сортировать по имени",
+    ["Sort By Last Edited"] = "Сортировать по времени изменения",
+    ["Couldn't save the build file:"] = "Не удалось сохранить файл билда:",
+    ["Max Eff. KF Attack Rate"] = "Макс. эфф. скор. атаки KF",
+    ["Average Dmg. inc. Ignite"] = "Ср. урон с поджогом",
+    ["Single Poison DPS"] = "Урон в сек. одного яда",
+    ["Omniscience Required"] = "Требуемое всезнание",
+    ["%Inc Life from Tree"] = "%ув. здоровья с дерева",
+    ["Life Recharge"] = "Восстановление здоровья",
+    ["cast rate"] = "скорость заклинаний",
+    ["attack rate"] = "скорость атак",
+    ["One Handed Sword"] = "Одноручный меч",
+    ["Very Large"] = "Очень большой",
+    ["Enkindling Orb"] = "Сфера воспламенения",
+    ["Instilling Orb"] = "Сфера внушения",
+    ["Runecraft Bench"] = "Верстак рун",
+    ["Dedication to the Goddess"] = "Посвящение Богине",
+    ["Eternal Labyrinth"] = "Вечный лабиринт",
+    ["Merciless Labyrinth"] = "Беспощадный лабиринт",
+    ["Cruel Labyrinth"] = "Жестокий лабиринт",
+    ["Normal Labyrinth"] = "Обычный лабиринт",
+    ["Update Ready"] = "Доступно обновление",
+    ["Update check failed!"] = "Не удалось проверить обновления!",
+    ["If this location is managed by OneDrive, navigate to that folder and manually try"] = "Если эта папка управляется OneDrive, откройте её и вручную попробуйте",
+    ["to open Settings.xml in a text editor before re-opening Path of Building"] = "открыть Settings.xml в текстовом редакторе перед повторным запуском Path of Building",
+    ["Otherwise, specify a new location for your Settings.xml:"] = "Иначе укажите новое расположение для вашего Settings.xml:",
+    ["No error"] = "Нет ошибки",
+    ["Red & Green"] = "Красный и зелёный",
+    ["Green & Blue"] = "Зелёный и синий",
+    ["Based on Openarl's Path of Building"] = "На основе Path of Building от Openarl",
+    -- Runtime-only statics (color-prefix AST artifacts; audit keys contain "10" but real text matches after color stripping)
+    ["Failed to decode build data"] = "Не удалось декодировать данные билда",
+    ["Invalid build code"] = "Некорректный код билда",
+    ["Not authenticated"] = "Нет авторизации",
+    ["Not yet available"] = "Пока недоступно",
+    ["Legacy Gem"] = "Устаревший камень",
+    ["Gem only exists in Standard League"] = "Камень существует только в лиге Standard",
+    ["Item base is not supported by the current version."] = "База предмета не поддерживается текущей версией.",
+    ["Warning:^7 Importing to the current build will erase ALL existing data for this build."] = "Внимание:^7 Импорт в текущий билд сотрёт ВСЕ существующие данные этого билда.",
+    ["This config option is conditional with missing source and is invalid."] = "Эта настройка условная с отсутствующим источником и недействительна.",
+    ["This node is only in the compared build"] = "Этот узел есть только в сравниваемом билде",
+    ["Tip: Press Ctrl+D to disable the display of stat differences."] = "Совет: нажмите Ctrl+D, чтобы отключить показ разницы статов.",
+    ["Tip: Press Ctrl+D to enable the display of stat differences."] = "Совет: нажмите Ctrl+D, чтобы включить показ разницы статов.",
+    ["Tip: Hold Shift or Ctrl to hide this tooltip."] = "Совет: удерживайте Shift или Ctrl, чтобы скрыть эту подсказку.",
+    ["Tip: Hold Ctrl to hide this tooltip."] = "Совет: удерживайте Ctrl, чтобы скрыть эту подсказку.",
+    ["Tip: Press Ctrl+C to copy this node's text."] = "Совет: нажмите Ctrl+C, чтобы скопировать текст этого узла.",
+    ["Tip: Right click this socket to go to the items page and choose the jewel for this socket."] = "Совет: щёлкните правой кнопкой это гнездо, чтобы перейти на вкладку предметов и выбрать самоцвет для него.",
+    ["Tip: You can drag items from the Items tab onto this dropdown to equip them onto the minion."] = "Совет: можно перетащить предметы с вкладки «Предметы» в этот выпадающий список, чтобы надеть их на приспешника.",
+    ["That jewel socket is not allocated, so the jewel will only be added to your items."] = "Это гнездо самоцвета не занято, поэтому самоцвет лишь добавится в список предметов.",
+    ["This is the average roll of a Bleed affecting the enemy if you are constantly attacking"] = "Это средний бросок кровотечения, действующего на врага, при постоянной атаке",
+    ["NOTE: Calculation uses new Weighted Avg formula for critical hits"] = "ПРИМ.: расчёт критов использует новую средневзвешенную формулу",
 }
 
 --- Translates a UI string to Russian, preserving leading color escape codes (e.g. ^7, ^8).
@@ -5621,6 +5842,125 @@ function UITranslationsRU:Get(text)
         local attrMap = { Strength = "силы", Dexterity = "ловкости", Intelligence = "интеллекта" }
         return colorPrefix .. supCnt .. " камней поддержки (" .. (attrMap[supAttr] or supAttr) .. ")" .. trailingSuffix
     end
+
+    -- ===== TZ-02: PoE1 AST dict misses (dynamic patterns) =====
+    local dyn = tagless:match("^Enter the new name for this (.+)$")
+    if dyn then return colorPrefix .. "Введите новое имя для " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^Imported from (.+)$")
+    if dyn then return colorPrefix .. "Импортировано из " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^Group (%d+)$")
+    if dyn then return colorPrefix .. "Группа " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^Use specific base: (.+)$")
+    if dyn then return colorPrefix .. "Использовать конкретную базу: " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^Requires Class (.+)$")
+    if dyn then return colorPrefix .. "Требуется класс " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^Reservation Override: (.+)$")
+    if dyn then return colorPrefix .. "Переопределение удержания: " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^Affix: (.+)$")
+    if dyn then return colorPrefix .. "Аффикс: " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^Variants: (.+)$")
+    if dyn then return colorPrefix .. "Варианты: " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^Variant: (.+)$")
+    if dyn then return colorPrefix .. "Вариант: " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^Socket #(%d+)$")
+    if dyn then return colorPrefix .. "Гнездо #" .. dyn .. trailingSuffix end
+    dyn = tagless:match("^(%d+) Tiers$")
+    if dyn then return colorPrefix .. dyn .. " тиров" .. trailingSuffix end
+    dyn = tagless:match("^Source: (.+)$")
+    if dyn then return colorPrefix .. "Источник: " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^(.+) can appear on:$")
+    if dyn then return colorPrefix .. dyn .. " может появляться на:" .. trailingSuffix end
+    dyn = tagless:match("^Limited to: (.+)$")
+    if dyn then return colorPrefix .. "Ограничено: " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^Sockets: (.+)$")
+    if dyn then return colorPrefix .. "Гнёзда: " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^Attributes in Radius: (.+)$")
+    if dyn then return colorPrefix .. "Атрибуты в радиусе: " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^Item sockets: (%d+)$")
+    if dyn then return colorPrefix .. "Гнёзда предмета: " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^Node (%d+):$")
+    if dyn then return colorPrefix .. "Узел " .. dyn .. ":" .. trailingSuffix end
+    dyn = tagless:match("^%- Tier: (%d+)$")
+    if dyn then return colorPrefix .. "- Уровень: " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^Allocates (.+)$")
+    if dyn then return colorPrefix .. "Даёт " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^Anoint (.+)$")
+    if dyn then return colorPrefix .. "Намазать " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^Could not import: (.+)$")
+    if dyn then return colorPrefix .. "Не удалось импортировать: " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^Compared build: (.*)$")
+    if dyn then return colorPrefix .. "Сравниваемый билд: " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^Talisman Tier (.+)$")
+    if dyn then return colorPrefix .. "Уровень талисмана " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^(%d+) Gold required to unallocate these nodes$")
+    if dyn then return colorPrefix .. dyn .. " золота требуется для снятия этих узлов" .. trailingSuffix end
+    dyn = tagless:match("^(%d+) Gold required to unallocate this node$")
+    if dyn then return colorPrefix .. dyn .. " золота требуется для снятия этого узла" .. trailingSuffix end
+    dyn = tagless:match("^(%d+) points gained from unallocating these nodes$")
+    if dyn then return colorPrefix .. "Получено очков от снятия этих узлов: " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^(%d+) nodes in trace path$")
+    if dyn then return colorPrefix .. "Узлов в пути трассировки: " .. dyn .. trailingSuffix end
+    local m1, m2, m3
+    m1, m2 = tagless:match("^(%d+) points to node(.*)$")
+    if m1 then return colorPrefix .. m1 .. " очков до узла" .. m2 .. trailingSuffix end
+    m1, m2 = tagless:match("^(%d+) is currently equipped in (.+)%.$")
+    if m1 then return colorPrefix .. m1 .. " уже экипировано в " .. m2 .. "." .. trailingSuffix end
+    m1 = tagless:match("^(%d+) is currently equipped in an Abyssal Socket.+%.$")
+    if m1 then return colorPrefix .. m1 .. " уже экипировано в Гнездо Бездны." .. trailingSuffix end
+    m1, m2 = tagless:match("^(%d+) is currently equipped in passive tree '(.+)'%.$")
+    if m1 then return colorPrefix .. m1 .. " уже экипировано в дерево пассивных умений '" .. m2 .. "'." .. trailingSuffix end
+    m1 = tagless:match("^Are you sure you want to remove '(.+)' from the shared item list%?$")
+    if m1 then return colorPrefix .. "Удалить '" .. m1 .. "' из общего списка предметов?" .. trailingSuffix end
+    m1, m2 = tagless:match("^Tattoo Count: (%d+)/(%d+)$")
+    if m1 then return colorPrefix .. "Кол-во татуировок: " .. m1 .. "/" .. m2 .. trailingSuffix end
+    m1 = tagless:match("^(.+) %(Disabled%)$")
+    if m1 then return colorPrefix .. m1 .. " (отключено)" .. trailingSuffix end
+    m1 = tagless:match("^(.+) %(FullDPS%)$")
+    if m1 then return colorPrefix .. m1 .. " (FullDPS)" .. trailingSuffix end
+    m1, m2, m3 = tagless:match("^Couldn't move '(.+)' to '(.+)'%s*: (.+)$")
+    if m1 then return colorPrefix .. "Не удалось переместить '" .. m1 .. "' в '" .. m2 .. "' : " .. m3 .. trailingSuffix end
+    m1, m2 = tagless:match("^Couldn't delete '(.+)' : (.+)$")
+    if m1 then return colorPrefix .. "Не удалось удалить '" .. m1 .. "' : " .. m2 .. trailingSuffix end
+    m1, m2, m3 = tagless:match("^Couldn't rename '(.+)' to '(.+)'%s*: (.+)$")
+    if m1 then return colorPrefix .. "Не удалось переименовать '" .. m1 .. "' в '" .. m2 .. "': " .. m3 .. trailingSuffix end
+    m1 = tagless:match("^Couldn't copy build: (.+)$")
+    if m1 then return colorPrefix .. "Не удалось скопировать билд: " .. m1 .. trailingSuffix end
+    dyn = tagless:match("^The tree has been converted to (.+)$")
+    if dyn then return colorPrefix .. "Дерево конвертировано в " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^Whisper for (.+)$")
+    if dyn then return colorPrefix .. "Шёпот для " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^Search for (.+)$")
+    if dyn then return colorPrefix .. "Поиск для " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^Total Price: (.+)$")
+    if dyn then return colorPrefix .. "Общая цена: " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^Removing this item from (.+) will give you:$")
+    if dyn then return colorPrefix .. "Снятие предмета из " .. dyn .. " даст:" .. trailingSuffix end
+    dyn = tagless:match("^Equipping this item in (.+) will give you:$")
+    if dyn then return colorPrefix .. "Надевание предмета в " .. dyn .. " даст:" .. trailingSuffix end
+    dyn = tagless:match("^Allocating (.+) will give you:$")
+    if dyn then return colorPrefix .. "Занятие узла " .. dyn .. " даст:" .. trailingSuffix end
+    dyn = tagless:match("^Allocating (.+) changes nothing%.$")
+    if dyn then return colorPrefix .. "Занятие узла " .. dyn .. " ничего не меняет." .. trailingSuffix end
+    dyn = tagless:match("^Adds (%d+) Passive Skills$")
+    if dyn then return colorPrefix .. "Добавляет " .. dyn .. " пассивных умений" .. trailingSuffix end
+    dyn = tagless:match("^Level (%d+)$")
+    if dyn then return colorPrefix .. "Уровень " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^Requires (.+)$")
+    if dyn then return colorPrefix .. "Требуется " .. dyn .. trailingSuffix end
+    m1, m2 = tagless:match("^(.+) Abyssal Socket (%d+)$")
+    if m1 then return colorPrefix .. m1 .. " Гнездо Бездны " .. m2 .. trailingSuffix end
+    dyn = tagless:match("^Phys DPS: (.+)$")
+    if dyn then return colorPrefix .. "Физ. урон в сек.: " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^Ele DPS: (.+)$")
+    if dyn then return colorPrefix .. "Стих. урон в сек.: " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^Chaos DPS: (.+)$")
+    if dyn then return colorPrefix .. "Урон хаосом в сек.: " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^Total DPS: (.+)$")
+    if dyn then return colorPrefix .. "Общий урон в сек.: " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^APS: (.+)$")
+    if dyn then return colorPrefix .. "Атак в сек.: " .. dyn .. trailingSuffix end
+    dyn = tagless:match("^ES: (.+)$")
+    if dyn then return colorPrefix .. "ЭЩ: " .. dyn .. trailingSuffix end
 
     if CalcBreakdownRU then
         local bdTr = CalcBreakdownRU.Translate(cleanCore, tagless, colorPrefix, trailingSuffix)

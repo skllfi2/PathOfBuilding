@@ -15,6 +15,14 @@ local typeNames = {
 	["Elemental"] = "стихийного урона",
 }
 
+-- TZ-02: pool/resource names used in "X Regeneration:" labels
+local regenRu = {
+	["Life"] = "здоровья",
+	["Mana"] = "маны",
+	["Energy"] = "ЭЩ",
+	["Ward"] = "барьера",
+}
+
 local poolNames = {
 	["Life"] = "Здоровье",
 	["Mana"] = "Мана",
@@ -127,6 +135,80 @@ CalcBreakdownRU.static = {
 	["NOTE: Calculation uses a Weighted Avg formula"] = "ПРИМ.: расчёт использует средневзвешенную формулу",
 	["This is the average roll of an ignite affecting the enemy if you are constantly attacking"] = "Это средний бросок поджога, действующего на врага, при постоянной атаке",
 	["min combined sources + (max combined sources - min combined sources) * average ignite roll"] = "мин. сумма + (макс. сумма - мин. сумма) * сред. бросок поджога",
+	-- TZ-02: PoE1 AST dict misses (CalcBreakdown static labels)
+	["Nearest Totem Life"] = "Здоровье ближнего тотема",
+	["Total Void Spawn Life"] = "Общее здоровье порождений Бездны",
+	["Total Stone Golem Life"] = "Общее здоровье каменного голема",
+	["overridden from"] = "переопределено из",
+	["can be overridden in"] = "может быть переопределено в",
+	["initial portion"] = "начальная часть",
+	["Effective life from Mind over Matter:"] = "Эфф. здоровье от Силы разума:",
+	[", E is the exponent and P is the percentage of that type (ele or non ele)"] = ", E — экспонента, P — доля этого типа (стихийного или нет)",
+	["and E is the exponent"] = "и E — экспонента",
+	["* PvP multiplier"] = "* множитель PvP",
+	["Gain frequency:"] = "Частота получения:",
+	["Throwing rate:"] = "Скорость бросков:",
+	["Throwing time:"] = "Время броска:",
+	["Placement speed:"] = "Скорость установки:",
+	["Effective Accuracy vs Enemy"] = "Эфф. точность против врага",
+	["Attack Speed before increased Attack Speed"] = "Скорость атаки до увеличений скорости атаки",
+	["Trauma per second before increased Attack Speed"] = "Травма в сек. до увеличений скорости атаки",
+	["min source phys + (max source phys - min source phys) * average bleed roll"] = "мин. физ. источник + (макс. физ. источник - мин. физ. источник) * сред. бросок кровотечения",
+	["* 1 Cast on Death override"] = "* 1 переопределение Срабатывания при смерти",
+	["(Ailment Threshold is about equal to Life except on bosses where it is about half of their life)"] = "(Порог состояний примерно равен здоровью, но у боссов он примерно вдвое меньше)",
+	["Resulting ailment effect"] = "Итоговый эффект состояния",
+	["Combined total:"] = "Суммарно:",
+	["Exerting Warcries"] = "Усиливающие вои",
+	["Exerted Attacks"] = "Усиленные атаки",
+	["Empowered Spells"] = "Усиленные заклинания",
+	["Pact of Beidat"] = "Пакт Бейдата",
+	["Pact of Ghorr"] = "Пакт Гхорра",
+	["Pact of K'Tash"] = "Пакт К'Таша",
+	["Pact of Lycia"] = "Пакт Ликии",
+	["Inc. Warcry Speed"] = "Ув. скорость воеи",
+	["More Warcry Speed"] = "Больше скорости воеи",
+	["Uses per second"] = "Использований в сек.",
+	["Warcry Cast Time"] = "Время применения воеи",
+	["Crit Bifurcates"] = "Раздвоение крита",
+	["Impale Dur. Mod"] = "Мод. длительности пронзания",
+	["Impale Duration"] = "Длительность пронзания",
+	["Soul Refund Chance"] = "Шанс возврата души",
+	["Herald Buff Mod"] = "Мод. усиления глашатая",
+	["Average Seq More"] = "Сред. посл. «больше»",
+	["Max Effective APS"] = "Макс. эфф. атак в сек.",
+	["MH Eff. DoT Multi"] = "Эфф. множ. DoT осн. руки",
+	["OH Eff. DoT Multi"] = "Эфф. множ. DoT втор. руки",
+	["Poison Stacks"] = "Слои яда",
+	["% chance to inflict 1 additional poison"] = "% шанса наложить 1 доп. яд",
+	["% chance to inflict 1 additional poison (Main Hand)"] = "% шанса наложить 1 доп. яд (осн. рука)",
+	["% chance to inflict 1 additional poison (Off Hand)"] = "% шанса наложить 1 доп. яд (втор. рука)",
+	["inflict # additional poisons"] = "наложить # доп. ядов",
+	["inflict # additional poisons (Main Hand)"] = "наложить # доп. ядов (осн. рука)",
+	["inflict # additional poisons (Off Hand)"] = "наложить # доп. ядов (втор. рука)",
+	["Poison Stack Limits"] = "Лимиты слоёв яда",
+	["Eff. DoT Multi"] = "Эфф. множ. DoT",
+	["Dmg. per Poison"] = "Урон за яд",
+	["Total Poison DPS"] = "Общий урон яда в сек.",
+	["Dmg. per Ignite"] = "Урон за поджог",
+	["Omni. Required"] = "Треб. всезнание",
+	["Increased Mana Regeneration Rate"] = "Ув. скорость регенерации маны",
+	["More Mana Regeneration Rate"] = "Больше скорости регенерации маны",
+	["Tincture Limit"] = "Лимит настоек",
+	["ManaBurn inc Rate"] = "Ув. скорость сжигания маны",
+	["ManaBurn more Rate"] = "Больше скорости сжигания маны",
+	["% Not Inflict ManaBurn"] = "% шанса НЕ наложить сжигание маны",
+	["Cooldown Recovery"] = "Восстановление перезарядки",
+	["Maximum Stacks"] = "Макс. слоёв",
+	["Minimum Stacks"] = "Мин. слоёв",
+	["Less Dmg. Taken"] = "Меньше получаемого урона",
+	["Minion Ally"] = "Союзник-приспешник",
+	["Sentinel of Radiance"] = "Страж сияния",
+	["Void Spawn Ally"] = "Союзник-порождение Бездны",
+	["Stone Golem Ally"] = "Союзник-каменный голем",
+	["Source skill has no mana cost"] = "Исходное умение не имеет затрат маны",
+	["Effective source rate"] = "Эфф. частота источника",
+	["The trigger needs to be triggered for any skill to be triggered."] = "Для срабатывания какого-либо умения триггер должен быть активирован.",
+	["Shattershard uses duration as pseudo cooldown"] = "Shattershard использует длительность как псевдоперезарядку",
 }
 
 CalcBreakdownRU.parens = {
@@ -752,6 +834,81 @@ local function TranslateExtra(coreText, tagless, colorPrefix, trailingSuffix)
 	m1, m2 = tagless:match("^([%+%-]?[%d%.]+) (.+)$")
 	if m1 and cmpStats[m2] then
 		return colorPrefix .. m1 .. " " .. cmpStats[m2] .. trailingSuffix
+	end
+	-- TZ-02: PoE1 AST dict misses (dynamic patterns)
+	-- "x 0 (no Impale Duration)"
+	m1 = tagless:match("^x (%d+) %(no Impale Duration%)$")
+	if m1 then
+		return colorPrefix .. "x " .. m1 .. " (нет длительности пронзания)" .. trailingSuffix
+	end
+	-- "Instant Leech per second: N (N x N)"
+	m1, m2, m3 = tagless:match("^Instant Leech per second:%s*([%d%.]+)%s*%(([%d%.]+)%s*x%s*([%d%.]+)%)$")
+	if m1 then
+		return colorPrefix .. "Мгновенное похищение в сек.: " .. m1 .. " (" .. m2 .. " x " .. m3 .. ")" .. trailingSuffix
+	end
+	-- "= N (Base Damage) * M (Damage taken as X)"
+	m1, m2, m3 = tagless:match("^=%s*([%d%.]+)%s*%(Base Damage%)%s*%*%s*([%d%.]+)%s*%(Damage taken as (.+)%)$")
+	if m1 then
+		return colorPrefix .. "= " .. m1 .. " (базовый урон) * " .. m2 .. " (урон, принимаемый как " .. (typeNames[m3] or m3) .. ")" .. trailingSuffix
+	end
+	-- "= N (X Damage) * M (Damage taken multi)"
+	m1, m2, m3 = tagless:match("^=%s*([%d%.]+)%s*%((.+) Damage%)%s*%*%s*([%d%.]+)%s*%(Damage taken multi%)$")
+	if m1 then
+		return colorPrefix .. "= " .. m1 .. " (" .. (typeNames[m2] or m2) .. " урон) * " .. m3 .. " (множитель получаемого урона)" .. trailingSuffix
+	end
+	-- "= N (X Damage taken)"
+	m1, m2 = tagless:match("^=%s*([%d%.]+)%s*%((.+) Damage taken%)$")
+	if m1 then
+		return colorPrefix .. "= " .. m1 .. " (" .. (typeNames[m2] or m2) .. " урон принят)" .. trailingSuffix
+	end
+	-- "N Ward" / "N Life Loss Prevented"
+	m1 = tagless:match("^(%d+) Ward$")
+	if m1 then
+		return colorPrefix .. m1 .. " ^7барьера" .. trailingSuffix
+	end
+	m1 = tagless:match("^(%d+) Life Loss Prevented$")
+	if m1 then
+		return colorPrefix .. m1 .. " ^7предотвращённой потери здоровья" .. trailingSuffix
+	end
+	-- "/ N (faster start)"
+	m1 = tagless:match("^/ ([%d%.]+) %(faster start%)$")
+	if m1 then
+		return colorPrefix .. "/ " .. m1 .. " ^8(быстрее начало)" .. trailingSuffix
+	end
+	-- "= Ns"
+	m1 = tagless:match("^= ([%d%.]+)s$")
+	if m1 then
+		return colorPrefix .. "= " .. m1 .. "с" .. trailingSuffix
+	end
+	-- "= Nm"
+	m1 = tagless:match("^= ([%d%.]+)m$")
+	if m1 then
+		return colorPrefix .. "= " .. m1 .. "м" .. trailingSuffix
+	end
+	-- "X N (enemy damage conversion)"
+	m1, m2 = tagless:match("^(.+) ([%d%.]+) %(enemy damage conversion%)$")
+	if m1 then
+		return colorPrefix .. m1 .. " " .. m2 .. " (конвертация урона врага)" .. trailingSuffix
+	end
+	-- "+ Enemy Overwhelm X Damage: N"
+	m1, m2 = tagless:match("^%+ Enemy Overwhelm (.+) Damage:%s*([%d%.]+)$")
+	if m1 then
+		return colorPrefix .. "+ Превозмогание врагом " .. (typeNames[m1] or m1) .. " урона: " .. m2 .. trailingSuffix
+	end
+	-- "Stun Chance has to be more than N% to stun."
+	m1 = tagless:match("^Stun Chance has to be more than (%d+)%% to stun%.$")
+	if m1 then
+		return colorPrefix .. "Шанс оглушения должен быть больше " .. m1 .. "% для оглушения." .. trailingSuffix
+	end
+	-- "N  N only:" (CompareCalcsHelpers)
+	m1, m2 = tagless:match("^([%w%+%-%%%.]+)%s+([%w%+%-%%%.]+) only:$")
+	if m1 then
+		return colorPrefix .. m1 .. "  только " .. m2 .. ":" .. trailingSuffix
+	end
+	-- "N Regeneration:" (e.g. "Life Regeneration:")
+	m1 = tagless:match("^(%S+) Regeneration:$")
+	if m1 and regenRu[m1] then
+		return colorPrefix .. "Регенерация " .. regenRu[m1] .. ":" .. trailingSuffix
 	end
 	return nil
 end
