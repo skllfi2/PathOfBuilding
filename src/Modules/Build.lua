@@ -2183,8 +2183,14 @@ end
 do
 	local req = { }
 	function buildMode:AddRequirementsToTooltip(tooltip, level, str, dex, int, strBase, dexBase, intBase)
+		local isRu = (main and main.itemLanguage) ~= "EN"
 		if level and level > 0 then
-			t_insert(req, s_format("^x7F7F7FLevel %s%d", main:StatColor(level, nil, self.characterLevel), level))
+			local levelLabel = isRu and "Уровень " or "Level "
+			if tooltip.tooltipHeader ~= "GEM" then
+				t_insert(req, s_format("^x7F7F7F%s%s%d", levelLabel, main:StatColor(level, nil, self.characterLevel), level))
+			else
+				t_insert(req, s_format("^7%s%s%d", levelLabel, main:StatColor(level, nil, self.characterLevel), level))
+			end
 		end
 		-- Convert normal attributes to Omni attributes
 		if self.calcsTab.mainEnv.modDB:Flag(nil, "OmniscienceRequirements") then
@@ -2197,23 +2203,34 @@ do
 			end
 			local omni = math.floor(highestAttribute * (100/omniSatisfy))
 			if omni and (omni > 0 or omni > self.calcsTab.mainOutput.Omni) then
-				t_insert(req, s_format("%s%d ^x7F7F7FOmni", main:StatColor(omni, 0, self.calcsTab.mainOutput.Omni), omni))
+				local omniLabel = isRu and "Всеведение" or "Omni"
+				t_insert(req, s_format("%s%d ^x7F7F7F%s", main:StatColor(omni, 0, self.calcsTab.mainOutput.Omni), omni, omniLabel))
 			end
 		else 
+			local attrTextColor = (tooltip.tooltipHeader == "GEM") and "^7" or "^x7F7F7F"
+			local strLabel = isRu and "Силы" or (level and "Str" or "Strength")
+			local dexLabel = isRu and "Ловкости" or (level and "Dex" or "Dexterity")
+			local intLabel = isRu and "Интеллекта" or (level and "Int" or "Intelligence")
 			if str and (str > 14 or str > self.calcsTab.mainOutput.Str) then
-				t_insert(req, s_format("%s%d ^x7F7F7FStr", main:StatColor(str, strBase, self.calcsTab.mainOutput.Str), str))
+				t_insert(req, s_format("%s%d %s%s", main:StatColor(str, strBase, self.calcsTab.mainOutput.Str), str, attrTextColor, strLabel))
 			end
 			if dex and (dex > 14 or dex > self.calcsTab.mainOutput.Dex) then
-				t_insert(req, s_format("%s%d ^x7F7F7FDex", main:StatColor(dex, dexBase, self.calcsTab.mainOutput.Dex), dex))
+				t_insert(req, s_format("%s%d %s%s", main:StatColor(dex, dexBase, self.calcsTab.mainOutput.Dex), dex, attrTextColor, dexLabel))
 			end
 			if int and (int > 14 or int > self.calcsTab.mainOutput.Int) then
-				t_insert(req, s_format("%s%d ^x7F7F7FInt", main:StatColor(int, intBase, self.calcsTab.mainOutput.Int), int))
+				t_insert(req, s_format("%s%d %s%s", main:StatColor(int, intBase, self.calcsTab.mainOutput.Int), int, attrTextColor, intLabel))
 			end
 		end
 		if req[1] then
 			local fontSizeBig = main.showFlavourText and 18 or 16
-			tooltip:AddLine(fontSizeBig, "^x7F7F7FRequires "..table.concat(req, "^x7F7F7F, "), "FONTIN SC")
-			tooltip:AddSeparator(10)
+			local reqPrefix = isRu and "^x7F7F7FТребования: " or "^x7F7F7FRequires "
+			if tooltip.tooltipHeader ~= "GEM" then
+				tooltip:AddLine(fontSizeBig, reqPrefix..table.concat(req, "^x7F7F7F, "), "FONTIN SC")
+				tooltip:AddSeparator(10)
+			else
+				local gemReqPrefix = isRu and "   ^x7F7F7FТребования: " or "   ^x7F7F7FRequires: "
+				tooltip:AddLine(fontSizeBig, gemReqPrefix..table.concat(req, "^7, "), "FONTIN SC")
+			end
 		end
 		wipeTable(req)
 	end

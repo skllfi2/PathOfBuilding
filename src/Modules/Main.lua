@@ -2097,25 +2097,71 @@ do
 	local wrapTable = { }
 	function main:WrapString(str, height, width, font)
 		wipeTable(wrapTable)
+		if not str or str == "" then
+			return wrapTable
+		end
+		local fontName = font or "VAR"
 		local lineStart = 1
 		local lastSpace, lastBreak
-		local fontName = font or "VAR"
-		while true do
+		local len = #str
+
+		while lineStart <= len do
 			local s, e = str:find("%s+", lastSpace)
 			if not s then
-				s = #str + 1
-				e = #str + 1
+				s = len + 1
+				e = len + 1
 			end
-			if DrawStringWidth(height, fontName, str:sub(lineStart, s - 1)) > width and lastBreak and lastBreak >= lineStart then
-				t_insert(wrapTable, str:sub(lineStart, lastBreak))
-				lineStart = lastSpace
+
+			local cand = str:sub(lineStart, s - 1)
+			if DrawStringWidth(height, fontName, cand) > width then
+				if lastBreak and lastBreak >= lineStart then
+					-- Break at previous word boundary
+					t_insert(wrapTable, str:sub(lineStart, lastBreak))
+					lineStart = lastSpace
+					lastBreak = nil
+				else
+					-- A single word exceeds available width: force-break by UTF-8 characters
+					local fitBreak = nil
+					local curByte = lineStart
+					while curByte < s do
+						local b = str:byte(curByte)
+						local step = 1
+						if b and b >= 240 then step = 4
+						elseif b and b >= 224 then step = 3
+						elseif b and b >= 192 then step = 2 end
+						local nextByte = curByte + step
+						if nextByte > s then nextByte = s end
+						local subPiece = str:sub(lineStart, nextByte - 1)
+						if DrawStringWidth(height, fontName, subPiece) <= width then
+							fitBreak = nextByte - 1
+							curByte = nextByte
+						else
+							break
+						end
+					end
+					if fitBreak and fitBreak >= lineStart then
+						t_insert(wrapTable, str:sub(lineStart, fitBreak))
+						lineStart = fitBreak + 1
+						lastSpace = lineStart
+						lastBreak = nil
+					else
+						local b = str:byte(lineStart)
+						local step = (b and b >= 240 and 4) or (b and b >= 224 and 3) or (b and b >= 192 and 2) or 1
+						local cut = m_min(len, lineStart + step - 1)
+						t_insert(wrapTable, str:sub(lineStart, cut))
+						lineStart = cut + 1
+						lastSpace = lineStart
+						lastBreak = nil
+					end
+				end
+			else
+				if s > len then
+					t_insert(wrapTable, str:sub(lineStart, -1))
+					break
+				end
+				lastBreak = s - 1
+				lastSpace = e + 1
 			end
-			if s > #str then
-				t_insert(wrapTable, str:sub(lineStart, -1))
-				break
-			end
-			lastBreak = s - 1
-			lastSpace = e + 1
 		end
 		return wrapTable
 	end

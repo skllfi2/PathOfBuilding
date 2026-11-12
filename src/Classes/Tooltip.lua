@@ -183,13 +183,23 @@ function TooltipClass:AddLine(size, text, font, modLine, background)
 			if RULogger and main and main.logUntranslatedRU and line == origLine and origLine ~= "" then
 				RULogger.Log("TOOLTIP", origLine)
 			end
-			if line:match("^.*(Equipping)") == "Equipping" or line:match("^.*(Removing)") == "Removing" then
+			if line:match("^.*(Equipping)") == "Equipping" or line:match("^.*(Removing)") == "Removing" or line:match("Установка") or line:match("Снятие") then
 				t_insert(self.blocks, { height = size + 2})
 			else
 				self.blocks[#self.blocks].height = self.blocks[#self.blocks].height + size + 2
 			end
+			local activeColour
 			if self.maxWidth then
 				for _, wrappedLine in ipairs(main:WrapString(line, size, self.maxWidth - H_PAD - 4, fontToUse)) do
+					if activeColour then wrappedLine = activeColour .. wrappedLine end
+					for pos, code in s_gmatch(wrappedLine, "()%^(.)") do
+						if code == "x" and wrappedLine:sub(pos + 2, pos + 7):match("^%x%x%x%x%x%x$") then
+							activeColour = wrappedLine:sub(pos, pos + 7)
+						elseif code == "7" then
+							activeColour = nil
+						end
+					end
+					if activeColour then wrappedLine = wrappedLine .. "^7" end
 					t_insert(self.lines, { size = size, text = wrappedLine, block = #self.blocks, font = fontToUse, center = self.center, modLine = modLine, background = background })
 				end
 			else
