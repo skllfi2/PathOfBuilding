@@ -10,6 +10,9 @@ local t_remove = table.remove
 local m_min = math.min
 local m_max = math.max
 
+local okGemRU, GemNamesRU = pcall(LoadModule, "Data/GemNamesRU")
+if not okGemRU then GemNamesRU = nil end
+
 local groupSlotDropList = {
 	{ label = "None" },
 	{ label = "Weapon 1", slotName = "Weapon 1" },
@@ -1329,9 +1332,11 @@ function SkillsTabClass:AddSocketGroupTooltip(tooltip, socketGroup)
 		end
 		tooltip:AddLine(16, "^7Active Skill #"..index..":")
 		for _, skillEffect in ipairs(activeSkill.effectList) do
+			local rawName = skillEffect.srcInstance.nameSpec or skillEffect.grantedEffect.name
+			local dispName = (main and main.itemLanguage ~= "EN" and GemNamesRU and GemNamesRU:Get(rawName)) or rawName
 			tooltip:AddLine(20, string.format("%s%s ^7%d%s/%d%s",
 				data.skillColorMap[skillEffect.grantedEffect.color],
-				skillEffect.grantedEffect.name,
+				dispName,
 				skillEffect.srcInstance and skillEffect.srcInstance.level or skillEffect.level,
 				(skillEffect.srcInstance and skillEffect.level > skillEffect.srcInstance.level) and colorCodes.MAGIC.."+"..(skillEffect.level - skillEffect.srcInstance.level).."^7" or "",
 				skillEffect.srcInstance and skillEffect.srcInstance.quality or skillEffect.quality,
@@ -1345,9 +1350,11 @@ function SkillsTabClass:AddSocketGroupTooltip(tooltip, socketGroup)
 			tooltip:AddSeparator(10)
 			tooltip:AddLine(16, "^7Active Skill #" .. index .. "'s Main Minion Skill:")
 			local activeEffect = activeSkill.minion.mainSkill.effectList[1]
+			local rawMinionName = activeEffect.grantedEffect.name
+			local dispMinionName = (main and main.itemLanguage ~= "EN" and GemNamesRU and GemNamesRU:Get(rawMinionName)) or rawMinionName
 			tooltip:AddLine(20, string.format("%s%s ^7%d%s/%d%s",
 				data.skillColorMap[activeEffect.grantedEffect.color],
-				activeEffect.grantedEffect.name,
+				dispMinionName,
 				activeEffect.srcInstance and activeEffect.srcInstance.level or activeEffect.level,
 				(activeEffect.srcInstance and activeEffect.level > activeEffect.srcInstance.level) and colorCodes.MAGIC .. "+" .. (activeEffect.level - activeEffect.srcInstance.level) .. "^7" or "",
 				activeEffect.srcInstance and activeEffect.srcInstance.quality or activeEffect.quality,
@@ -1381,9 +1388,11 @@ function SkillsTabClass:AddSocketGroupTooltip(tooltip, socketGroup)
 					reason = "(Cannot apply to any of the active skills)"
 				end
 			end
+			local rawName = (gemInstance.grantedEffect and gemInstance.grantedEffect.name) or (gemInstance.gemData and gemInstance.gemData.name) or gemInstance.nameSpec
+			local dispName = (main and main.itemLanguage ~= "EN" and GemNamesRU and GemNamesRU:Get(rawName)) or rawName
 			tooltip:AddLine(20, string.format("%s%s ^7%d%s/%d%s %s",
 				gemInstance.color,
-				(gemInstance.grantedEffect and gemInstance.grantedEffect.name) or (gemInstance.gemData and gemInstance.gemData.name) or gemInstance.nameSpec,
+				dispName,
 				displayEffect.srcInstance and displayEffect.srcInstance.level or displayEffect.level,
 				displayEffect.level > gemInstance.level and colorCodes.MAGIC .. "+" .. (displayEffect.level - gemInstance.level) .. "^7" or "",
 				displayEffect.srcInstance and displayEffect.srcInstance.quality or displayEffect.quality,

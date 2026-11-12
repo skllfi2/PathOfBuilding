@@ -12,6 +12,7 @@ local m_max = math.max
 local m_floor = math.floor
 
 local gemTooltip = require("Classes.GemTooltip")
+local GemNamesRU = LoadModule("Data/GemNamesRU")
 local toolTipText = "Prefix tag searches with a colon and exclude tags with a dash. e.g. :fire:lightning:-cold:area"
 local imbuedTooltipText = "\"Socketed in\" item must be set in order to add an imbued support.\nOnly one imbued support is allowed per item."
 
@@ -37,6 +38,21 @@ function GemSelectClass:GemSelectControl(anchor, rect, skillsTab, index, changeF
 	end
 	self.controls.scrollBar.shown = function()
 		return self.dropped and self.controls.scrollBar.enabled
+	end
+	-- Inactive (closed combobox) text: Russian gem name, with the English original in ^8 in DUAL mode
+	self.inactiveText = function(buf)
+		local itemLang = (main and main.itemLanguage) or "DUAL"
+		if itemLang ~= "EN" and GemNamesRU and buf and #buf > 0 then
+			local ru = GemNamesRU:Get(buf)
+			if ru and ru ~= buf then
+				if itemLang == "RU" then
+					return ru
+				elseif itemLang == "DUAL" then
+					return ru .. " ^8(" .. buf .. ")"
+				end
+			end
+		end
+		return buf
 	end
 	self.skillsTab = skillsTab
 	self.gems = { }
@@ -567,7 +583,18 @@ function GemSelectClass:Draw(viewPort, noTooltip)
 					SetDrawColor(colorCodes.INTELLIGENCE)
 				end
 			end
-			local gemText = gemData and gemData.name or "<No matches>"
+			local itemLang = (main and main.itemLanguage) or "DUAL"
+			local gemText = "<No matches>"
+			if gemData then
+				local ru = (itemLang ~= "EN" and GemNamesRU) and GemNamesRU:Get(gemData) or nil
+				if itemLang == "RU" and ru then
+					gemText = ru
+				elseif itemLang == "DUAL" and ru and ru ~= gemData.name then
+					gemText = ru .. " ^8(" .. gemData.name .. ")"
+				else
+					gemText = gemData.name
+				end
+			end
 			DrawString(0, y, "LEFT", height - 4, "VAR", gemText)
 			if gemData then
 				if gemData.grantedEffect.support and self.sortCache.canSupport[gemId] and self.sortCache.dpsColor[gemId] ~= "" then

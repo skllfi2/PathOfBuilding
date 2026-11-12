@@ -18,6 +18,8 @@ local m_modf = math.modf
 local buySimilar = require("Classes.CompareBuySimilar")
 local addImplicit = require("Modules.AddImplicitPopup")
 local gemTooltip = require("Classes.GemTooltip")
+local ItemNamesRU = LoadModule("Data/ItemNamesRU")
+local utf8 = require('lua-utf8')
 
 local rarityDropList = {
 	{ label = colorCodes.NORMAL.."Normal", rarity = "NORMAL" },
@@ -4281,20 +4283,74 @@ function ItemsTabClass:AddItemTooltip(tooltip, item, slot, dbMode, maxWidth)
 	tooltip.foilType = item.foilType
 	tooltip.center = true
 	tooltip.color = rarityCode
+	-- Item name language (main.itemLanguage): "DUAL" (default), "RU", "EN"
+	local itemLang = main.itemLanguage or "DUAL"
+	local function ruNameOf(enName)
+		return ItemNamesRU and ItemNamesRU:Get(enName) or enName
+	end
+	local function toUpperRu(str)
+		if not str then return "" end
+		local u = utf8 and utf8.upper
+		if u then
+			local ok, res = pcall(u, str)
+			if ok and res then return res end
+		end
+		return str:upper()
+	end
 	-- Shared items can use old base names that no longer exist. Add a tooltip so they can be copied or removed without causing a crash.
 	if not item.base or not item.baseName then
-		tooltip:AddLine(fontSizeTitle, rarityCode..(item.title or item.name or "Unknown Item"), "FONTIN SC")
+		local enName = item.title or item.name or "Unknown Item"
+		if itemLang ~= "EN" then
+			local ruName = ruNameOf(enName)
+			if ruName ~= enName then
+				tooltip:AddLine(fontSizeTitle, rarityCode..toUpperRu(ruName), "FONTIN SC")
+				if itemLang == "DUAL" then
+					tooltip:AddLine(fontSizeSmall, "^8(" .. enName .. ")", "FONTIN SC")
+				end
+			else
+				tooltip:AddLine(fontSizeTitle, rarityCode..enName, "FONTIN SC")
+			end
+		else
+			tooltip:AddLine(fontSizeTitle, rarityCode..enName, "FONTIN SC")
+		end
 		tooltip:AddSeparator(30)
 		tooltip:AddLine(fontSizeTitle, colorCodes.NEGATIVE.."Item base is not supported by the current version.", "FONTIN SC")
 		return
 	end
 	self:SetTooltipHeaderInfluence(tooltip, item)
-	-- Item name
+	-- Item name: Russian translation as the header banner, original English as a grey ^8 subtitle in DUAL mode
+	local enSubtitle
 	if item.title then
-		tooltip:AddLine(fontSizeTitle, rarityCode..item.title, "FONTIN SC")
-		tooltip:AddLine(fontSizeTitle, rarityCode..item.baseName:gsub(" %(.+%)",""),"FONTIN SC")
+		local ruTitle = ruNameOf(item.title)
+		local cleanBase = item.baseName:gsub(" %(.+%)","")
+		local ruBase = ruNameOf(cleanBase)
+		if itemLang ~= "EN" and (ruTitle ~= item.title or ruBase ~= cleanBase) then
+			tooltip:AddLine(fontSizeTitle, rarityCode..toUpperRu(ruTitle), "FONTIN SC")
+			tooltip:AddLine(fontSizeTitle, rarityCode..toUpperRu(ruBase), "FONTIN SC")
+			if itemLang == "DUAL" then
+				local enFull = item.title .. (cleanBase ~= "" and (" (" .. cleanBase .. ")") or "")
+				local ruFull = ruTitle .. (cleanBase ~= "" and (" (" .. ruBase .. ")") or "")
+				if enFull ~= ruFull then
+					tooltip:AddLine(fontSizeSmall, "^8(" .. enFull .. ")", "FONTIN SC")
+				end
+			end
+		else
+			tooltip:AddLine(fontSizeTitle, rarityCode..item.title, "FONTIN SC")
+			tooltip:AddLine(fontSizeTitle, rarityCode..cleanBase, "FONTIN SC")
+		end
 	else
-		tooltip:AddLine(fontSizeTitle, rarityCode..item.namePrefix..item.baseName:gsub(" %(.+%)","")..item.nameSuffix, "FONTIN SC")
+		local rawBase = item.baseName:gsub(" %(.+%)","")
+		local ruBase = ruNameOf(rawBase)
+		local enFull = item.namePrefix .. rawBase .. item.nameSuffix
+		local ruFull = item.namePrefix .. ruBase .. item.nameSuffix
+		if itemLang ~= "EN" and ruFull ~= enFull then
+			tooltip:AddLine(fontSizeTitle, rarityCode..toUpperRu(ruFull), "FONTIN SC")
+			if itemLang == "DUAL" then
+				tooltip:AddLine(fontSizeSmall, "^8(" .. enFull .. ")", "FONTIN SC")
+			end
+		else
+			tooltip:AddLine(fontSizeTitle, rarityCode..enFull, "FONTIN SC")
+		end
 	end
 	for _, curInfluenceInfo in ipairs(influenceInfo) do
 		if item[curInfluenceInfo.key] and not main.showFlavourText then
@@ -4352,10 +4408,15 @@ function ItemsTabClass:AddItemTooltip(tooltip, item, slot, dbMode, maxWidth)
 	local base = item.base
 	local slotNum = slot and slot.slotNum or (IsKeyDown("SHIFT") and 2 or 1)
 	local modList = item.modList or item.slotModList[slotNum]
+	-- Item base type / weapon class translated via ItemNamesRU (uppercase, UTF-8-safe). Fallback: original English.
+	local typeStr = base.weapon and (self.build.data.weaponTypeInfo[base.type].label or base.subType or base.type or "") or (base.type or "")
+	if itemLang ~= "EN" and ItemNamesRU and ItemNamesRU:Get(typeStr) then
+		typeStr = toUpperRu(ItemNamesRU:Get(typeStr))
+	end
 	if base.weapon then
 		-- Weapon-specific info
 		local weaponData = item.weaponData[slotNum]
-		tooltip:AddLine(fontSizeBig, s_format("^x7F7F7F%s", self.build.data.weaponTypeInfo[base.type].label or base.subType or base.type), "FONTIN SC")
+		tooltip:AddLine(fontSizeBig, s_format("^x7F7F7F%s", typeStr), "FONTIN SC")
 		if item.quality > 0 then
 			tooltip:AddLine(fontSizeBig, s_format("^x7F7F7FQuality: "..colorCodes.MAGIC.."+%d%%", item.quality), "FONTIN SC")
 		end
@@ -4496,6 +4557,10 @@ function ItemsTabClass:AddItemTooltip(tooltip, item, slot, dbMode, maxWidth)
 				tooltip:AddLine(fontSizeBig, "^x7F7F7FAttributes in Radius: "..line, "FONTIN SC")
 			end
 		end
+	end
+	-- Base type line for non-weapon bases
+	if not base.weapon then
+		tooltip:AddLine(fontSizeBig, s_format("^x7F7F7F%s", typeStr), "FONTIN SC")
 	end
 	if item.catalyst and item.catalyst > 0 and item.catalyst <= #catalystQualityFormat and item.catalystQuality and item.catalystQuality > 0 then
 		tooltip:AddLine(fontSizeBig, s_format(catalystQualityFormat[item.catalyst], item.catalystQuality), "FONTIN SC")
