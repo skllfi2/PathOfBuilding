@@ -5,11 +5,128 @@
 
 local m_max = math.max
 
+local GemNamesRU = LoadModule("Data/GemNamesRU")
+local SkillDescriptionsRU = LoadModule("Data/SkillDescriptionsRU")
+local UITranslationsRU = LoadModule("Data/UITranslationsRU")
+
+local GEM_TAGS_RU = {
+	["AoE"] = "Область",
+	["Area"] = "Область",
+	["Melee"] = "Ближний бой",
+	["Physical"] = "Физ.",
+	["Fire"] = "Огонь",
+	["Cold"] = "Холод",
+	["Lightning"] = "Молния",
+	["Chaos"] = "Хаос",
+	["Duration"] = "Длительность",
+	["Attack"] = "Атака",
+	["Spell"] = "Чары",
+	["Projectile"] = "Снаряд",
+	["Slam"] = "Мощный удар",
+	["Strike"] = "Удар",
+	["Warcry"] = "Боевой клич",
+	["Buff"] = "Эффект",
+	["Aura"] = "Аура",
+	["Minion"] = "Приспешники",
+	["Totem"] = "Тотем",
+	["Channelling"] = "Потоковое",
+	["Nova"] = "Кольцо",
+	["Hazard"] = "Опасность",
+	["Persistent"] = "Постоянное",
+	["Meta"] = "Мета",
+	["Trigger"] = "Срабатывание",
+	["Curse"] = "Проклятие",
+	["Mark"] = "Метка",
+	["Trap"] = "Ловушка",
+	["Mine"] = "Мина",
+	["Orb"] = "Сфера",
+	["Companion"] = "Спутник",
+	["Travel"] = "Перемещение",
+	["Guard"] = "Оборона",
+	["Shapeshift"] = "Перевоплощение",
+	["Bear"] = "Медведь",
+	["Wolf"] = "Волк",
+	["Wyvern"] = "Виверна",
+	["Payoff"] = "Расплата",
+	["Detonator"] = "Подрыв",
+	["Herald"] = "Вестник",
+	["Lineage"] = "Родословная",
+	["Support"] = "Поддержка",
+	["Sustained"] = "Поддерживаемое",
+	["Storm"] = "Буря",
+	["Exceptional"] = "Исключительное",
+	["Vainglory"] = "Суетливое",
+	["Vaal"] = "ВААЛ",
+	["Golem"] = "Голем",
+	["Endurance"] = "Выносливость",
+	["Frenzy"] = "Ярость",
+	["Power"] = "Сила",
+}
+
+local GEM_TYPES_RU = {
+	["Active"] = "Камень умения",
+	["Support"] = "Камень поддержки",
+}
+
+local function translateTagString(tagStr)
+	if not tagStr or tagStr == "" then return tagStr end
+	local out = { }
+	for tag in tagStr:gmatch("[^,]+") do
+		local t = tag:match("^%s*(.-)%s*$")
+		out[#out + 1] = GEM_TAGS_RU[t] or t
+	end
+	return table.concat(out, ", ")
+end
+
+local function trLabel(label)
+	if UITranslationsRU then
+		return UITranslationsRU:Get(label) or label
+	end
+	return label
+end
+
 ---@class GemTooltip
 local GemTooltip = { }
 
 local function getFontSizes()
 	return main.showFlavourText and 18 or 16, main.showFlavourText and 24 or 20
+end
+
+local function addGemHeader(tooltip, gemInstance, grantedEffect)
+	local fontSizeBig, fontSizeTitle = getFontSizes()
+	local iconNameIndent = "            "
+	local iconTagIndent = "                     "
+	local itemLang = (main and main.itemLanguage) or "DUAL"
+	local enTitle = grantedEffect.name
+	local ruTitle = (itemLang ~= "EN" and GemNamesRU) and GemNamesRU:Get(gemInstance.gemData) or nil
+
+	if itemLang == "RU" then
+		tooltip:AddLine(fontSizeTitle, colorCodes.GEM .. iconNameIndent .. (ruTitle or enTitle), "FONTIN SC")
+	elseif itemLang == "DUAL" and ruTitle and ruTitle ~= enTitle then
+		tooltip:AddLine(fontSizeTitle, colorCodes.GEM .. iconNameIndent .. ruTitle, "FONTIN SC")
+		tooltip:AddLine(fontSizeBig, "^8" .. iconTagIndent .. "(" .. enTitle .. ")", "FONTIN SC")
+	else
+		tooltip:AddLine(fontSizeTitle, colorCodes.GEM .. iconNameIndent .. enTitle, "FONTIN SC")
+	end
+
+	local displayType = grantedEffect.support and "Support" or "Active"
+	if itemLang ~= "EN" and GEM_TYPES_RU[displayType] then
+		if itemLang == "DUAL" then
+			displayType = GEM_TYPES_RU[displayType] .. " (" .. displayType .. ")"
+		else
+			displayType = GEM_TYPES_RU[displayType]
+		end
+	end
+	tooltip:AddLine(fontSizeBig, colorCodes.GEMINFO .. iconTagIndent .. displayType, "FONTIN SC")
+	tooltip:AddSeparator(8)
+
+	if gemInstance.gemData.tagString then
+		local dispTags = gemInstance.gemData.tagString
+		if itemLang ~= "EN" then
+			dispTags = translateTagString(dispTags)
+		end
+		tooltip:AddLine(fontSizeBig, "^x7F7F7F" .. iconTagIndent .. dispTags, "FONTIN SC")
+	end
 end
 
 
@@ -37,7 +154,7 @@ local function addCommonGemInfo(tooltip, build, gemInstance, grantedEffect, addL
 		local supportLevels = displayInstance.supportLevel or 0
 		local maxLevel = gemInstance.level >= (gemInstance.gemData.naturalMaxLevel or math.huge) and " (Max)" or ""
 		if itemLevels ~= 0 or globalLevels ~= 0 or supportLevels ~= 0 then
-			tooltip:AddLine(fontSizeBig, "^x7F7F7FLevel: " .. colorCodes.MAGIC .. displayInstance.level, "FONTIN SC")
+			tooltip:AddLine(fontSizeBig, trLabel("^x7F7F7FLevel:") .. " " .. colorCodes.MAGIC .. displayInstance.level, "FONTIN SC")
 			tooltip:AddLine(fontSizeBig, string.format("^7%d Levels from Gem%s", gemInstance.level, maxLevel), "FONTIN SC")
 			for _, source in ipairs({ { itemLevels, "Item" }, { globalLevels, "Global Modifiers" }, { supportLevels, "Supports" } }) do
 				if source[1] ~= 0 then
@@ -48,7 +165,7 @@ local function addCommonGemInfo(tooltip, build, gemInstance, grantedEffect, addL
 				tooltip:AddLine(fontSizeBig, "^x7F7F7FLimited to Level " .. displayInstance.level, "FONTIN SC")
 			end
 		else
-			tooltip:AddLine(fontSizeBig, string.format("^x7F7F7FLevel: ^7%d%s", gemInstance.level, maxLevel), "FONTIN SC")
+			tooltip:AddLine(fontSizeBig, string.format(trLabel("^x7F7F7FLevel:") .. " ^7%d%s", gemInstance.level, maxLevel), "FONTIN SC")
 		end
 	end
 	if grantedEffect.support then
@@ -69,7 +186,7 @@ local function addCommonGemInfo(tooltip, build, gemInstance, grantedEffect, addL
 			tooltip:AddLine(fontSizeBig, "^x7F7F7FReservation Override: ^7" .. reservation, "FONTIN SC")
 		end
 		if grantedEffectLevel.cooldown then
-			local string = string.format("^x7F7F7FCooldown Time: ^7%.2f sec", grantedEffectLevel.cooldown)
+			local string = string.format(trLabel("^x7F7F7FCooldown Time:") .. " ^7%.2f sec", grantedEffectLevel.cooldown)
 			if grantedEffectLevel.storedUses and grantedEffectLevel.storedUses > 1 then
 				string = string .. string.format(" (%d uses)", grantedEffectLevel.storedUses)
 			end
@@ -85,7 +202,7 @@ local function addCommonGemInfo(tooltip, build, gemInstance, grantedEffect, addL
 			end
 		end
 		if reservation then
-			tooltip:AddLine(fontSizeBig, "^x7F7F7FReservation: ^7" .. reservation, "FONTIN SC")
+			tooltip:AddLine(fontSizeBig, trLabel("^x7F7F7FReservation:") .. " ^7" .. reservation, "FONTIN SC")
 		end
 		local cost
 		for _, res in ipairs(data.costs) do
@@ -99,7 +216,7 @@ local function addCommonGemInfo(tooltip, build, gemInstance, grantedEffect, addL
 			tooltip:AddLine(fontSizeBig, "^x7F7F7FCost: ^7" .. cost, "FONTIN SC")
 		end
 		if grantedEffectLevel.cooldown then
-			local string = string.format("^x7F7F7FCooldown Time: ^7%.2f sec", grantedEffectLevel.cooldown, "FONTIN SC")
+			local string = string.format(trLabel("^x7F7F7FCooldown Time:") .. " ^7%.2f sec", grantedEffectLevel.cooldown)
 			if grantedEffectLevel.storedUses and grantedEffectLevel.storedUses > 1 then
 				string = string .. string.format(" (%d uses)", grantedEffectLevel.storedUses)
 			end
@@ -132,10 +249,10 @@ local function addCommonGemInfo(tooltip, build, gemInstance, grantedEffect, addL
 			end
 		else
 			if grantedEffect.castTime > 0 then
-				tooltip:AddLine(fontSizeBig, string.format("^x7F7F7FCast Time: ^7%.2f sec", grantedEffect.castTime),
+				tooltip:AddLine(fontSizeBig, string.format(trLabel("^x7F7F7FCast Time:") .. " ^7%.2f sec", grantedEffect.castTime),
 					"FONTIN SC")
 			else
-				tooltip:AddLine(fontSizeBig, "^x7F7F7FCast Time: ^7Instant", "FONTIN SC")
+				tooltip:AddLine(fontSizeBig, trLabel("^x7F7F7FCast Time:") .. " ^7Instant", "FONTIN SC")
 			end
 		end
 		if grantedEffectLevel.critChance then
@@ -173,7 +290,12 @@ local function addCommonGemInfo(tooltip, build, gemInstance, grantedEffect, addL
 		build:AddRequirementsToTooltip(tooltip, reqLevel, reqStr, reqDex, reqInt)
 	end
 	if grantedEffect.description then
-		tooltip:AddLine(fontSizeBig, colorCodes.GEM .. grantedEffect.description, "FONTIN SC")
+		local itemLang = (main and main.itemLanguage) or "DUAL"
+		local desc = grantedEffect.description
+		if itemLang ~= "EN" and SkillDescriptionsRU then
+			desc = SkillDescriptionsRU:Get(desc) or desc
+		end
+		tooltip:AddLine(fontSizeBig, colorCodes.GEM .. desc, "FONTIN SC")
 	end
 	if build.data.describeStats then
 		tooltip:AddSeparator(10)
@@ -226,18 +348,13 @@ function GemTooltip.AddGemTooltip(tooltip, build, gemInstance, options)
 	tooltip.tooltipHeader = "GEM"
 	tooltip.gemIcon = gemInstance.gemData.grantedEffect.icon
 
-	local iconNameIndent = "            "
-	local iconTagIndent = "                     "
-
 	local primary = gemInstance.gemData.grantedEffect
 	local secondary = gemInstance.gemData.secondaryGrantedEffect
 
 	if secondary and (not secondary.support or gemInstance.gemData.secondaryEffectName) then
 		local grantedEffect = gemInstance.gemData.VaalGem and secondary or primary
 		local grantedEffectSecondary = gemInstance.gemData.VaalGem and primary or secondary
-		tooltip:AddLine(fontSizeTitle, colorCodes.GEM .. iconNameIndent .. grantedEffect.name, "FONTIN SC")
-		tooltip:AddSeparator(10)
-		tooltip:AddLine(fontSizeBig, "^x7F7F7F" .. iconTagIndent .. gemInstance.gemData.tagString, "FONTIN SC")
+		addGemHeader(tooltip, gemInstance, grantedEffect)
 		addCommonGemInfo(tooltip, build, gemInstance, grantedEffect, true, not skipRequirements)
 		tooltip:AddSeparator(10)
 		tooltip:AddLine(fontSizeTitle,
@@ -246,15 +363,11 @@ function GemTooltip.AddGemTooltip(tooltip, build, gemInstance, options)
 		addCommonGemInfo(tooltip, build, gemInstance, grantedEffectSecondary)
 	else
 		local grantedEffect = gemInstance.gemData.grantedEffect
-		tooltip:AddLine(fontSizeTitle, colorCodes.GEM .. iconNameIndent .. grantedEffect.name, "FONTIN SC")
-		tooltip:AddSeparator(10)
+		addGemHeader(tooltip, gemInstance, grantedEffect)
 		if grantedEffect.legacy then
 			tooltip:AddLine(fontSizeTitle, colorCodes.WARNING .. "Legacy Gem", "FONTIN SC")
 			tooltip:AddLine(fontSizeBig, colorCodes.WARNING .. "Gem only exists in Standard League", "FONTIN SC")
 			tooltip:AddSeparator(10)
-		end
-		if gemInstance.gemData.tagString then
-			tooltip:AddLine(fontSizeBig, "^x7F7F7F" .. iconTagIndent .. gemInstance.gemData.tagString, "FONTIN SC")
 		end
 		addCommonGemInfo(tooltip, build, gemInstance, grantedEffect, true, not skipRequirements,
 			secondary and secondary.support and secondary)
