@@ -226,15 +226,18 @@ function GemTooltip.AddGemTooltip(tooltip, build, gemInstance, options)
 	tooltip.tooltipHeader = "GEM"
 	tooltip.gemIcon = gemInstance.gemData.grantedEffect.icon
 
+	local iconNameIndent = "            "
+	local iconTagIndent = "                     "
+
 	local primary = gemInstance.gemData.grantedEffect
 	local secondary = gemInstance.gemData.secondaryGrantedEffect
 
 	if secondary and (not secondary.support or gemInstance.gemData.secondaryEffectName) then
 		local grantedEffect = gemInstance.gemData.VaalGem and secondary or primary
 		local grantedEffectSecondary = gemInstance.gemData.VaalGem and primary or secondary
-		tooltip:AddLine(fontSizeTitle, colorCodes.GEM .. grantedEffect.name, "FONTIN SC")
+		tooltip:AddLine(fontSizeTitle, colorCodes.GEM .. iconNameIndent .. grantedEffect.name, "FONTIN SC")
 		tooltip:AddSeparator(10)
-		tooltip:AddLine(fontSizeBig, "^x7F7F7F" .. gemInstance.gemData.tagString, "FONTIN SC")
+		tooltip:AddLine(fontSizeBig, "^x7F7F7F" .. iconTagIndent .. gemInstance.gemData.tagString, "FONTIN SC")
 		addCommonGemInfo(tooltip, build, gemInstance, grantedEffect, true, not skipRequirements)
 		tooltip:AddSeparator(10)
 		tooltip:AddLine(fontSizeTitle,
@@ -243,7 +246,7 @@ function GemTooltip.AddGemTooltip(tooltip, build, gemInstance, options)
 		addCommonGemInfo(tooltip, build, gemInstance, grantedEffectSecondary)
 	else
 		local grantedEffect = gemInstance.gemData.grantedEffect
-		tooltip:AddLine(fontSizeTitle, colorCodes.GEM .. grantedEffect.name, "FONTIN SC")
+		tooltip:AddLine(fontSizeTitle, colorCodes.GEM .. iconNameIndent .. grantedEffect.name, "FONTIN SC")
 		tooltip:AddSeparator(10)
 		if grantedEffect.legacy then
 			tooltip:AddLine(fontSizeTitle, colorCodes.WARNING .. "Legacy Gem", "FONTIN SC")
@@ -251,7 +254,7 @@ function GemTooltip.AddGemTooltip(tooltip, build, gemInstance, options)
 			tooltip:AddSeparator(10)
 		end
 		if gemInstance.gemData.tagString then
-			tooltip:AddLine(fontSizeBig, "^x7F7F7F" .. gemInstance.gemData.tagString, "FONTIN SC")
+			tooltip:AddLine(fontSizeBig, "^x7F7F7F" .. iconTagIndent .. gemInstance.gemData.tagString, "FONTIN SC")
 		end
 		addCommonGemInfo(tooltip, build, gemInstance, grantedEffect, true, not skipRequirements,
 			secondary and secondary.support and secondary)
