@@ -9,6 +9,8 @@ local m_max = math.max
 local m_floor = math.floor
 local s_gmatch = string.gmatch
 
+local RULogger = LoadModule("Modules/RULogger")
+
 -- Constants
 
 local BORDER_WIDTH = 1
@@ -140,8 +142,13 @@ function TooltipClass:CheckForUpdate(...)
 			doUpdate = true
 		end
 	end
-	if doUpdate or self.updateParams.notSupportedModTooltips ~= main.notSupportedModTooltips then
+	if doUpdate
+		or self.updateParams.notSupportedModTooltips ~= main.notSupportedModTooltips
+		or self.updateParams.uiLanguage ~= main.uiLanguage
+		or self.updateParams.itemLanguage ~= main.itemLanguage then
 		self.updateParams.notSupportedModTooltips = main.notSupportedModTooltips
+		self.updateParams.uiLanguage = main.uiLanguage
+		self.updateParams.itemLanguage = main.itemLanguage
 		self:Clear()
 		return true
 	end
@@ -156,13 +163,25 @@ function TooltipClass:AddLine(size, text, font, modLine, background)
 			fontToUse = "VAR"
 		end
 		for line in s_gmatch(text .. "\n", "([^\n]*)\n") do
+			local origLine = line
+			local isUiRu = not (main and (main.uiLanguage == "EN" or (not main.uiLanguage and main.itemLanguage == "EN")))
+			if UITranslationsRU and isUiRu then
+				local tr = UITranslationsRU:Get(line)
+				if tr and tr ~= "" then
+					line = tr
+				end
+			end
+			-- Log untranslated tooltip lines (source: "TOOLTIP")
+			if RULogger and main and main.logUntranslatedRU and line == origLine and origLine ~= "" then
+				RULogger.Log("TOOLTIP", origLine)
+			end
 			if line:match("^.*(Equipping)") == "Equipping" or line:match("^.*(Removing)") == "Removing" then
 				t_insert(self.blocks, { height = size + 2})
 			else
 				self.blocks[#self.blocks].height = self.blocks[#self.blocks].height + size + 2
 			end
 			if self.maxWidth then
-				for _, wrappedLine in ipairs(main:WrapString(line, size, self.maxWidth - H_PAD)) do
+				for _, wrappedLine in ipairs(main:WrapString(line, size, self.maxWidth - H_PAD - 4, fontToUse)) do
 					t_insert(self.lines, { size = size, text = wrappedLine, block = #self.blocks, font = fontToUse, center = self.center, modLine = modLine, background = background })
 				end
 			else

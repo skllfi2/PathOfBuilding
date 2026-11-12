@@ -45,3 +45,9 @@ runtime/SimpleGraphic/Screenshots
 
 .emmyrc.json
 .luarc.json
+
+# RU Localization scratch & runtime logs
+scratch/
+src/untranslated_live.log
+Snapshots/
+to_translate_*.json

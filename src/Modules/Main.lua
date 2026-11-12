@@ -23,6 +23,7 @@ require("Modules.ItemTools")
 require("Modules.CalcTools")
 LoadModule("Modules/PantheonTools")
 LoadModule("Modules/BuildSiteTools")
+RULogger = LoadModule("Modules/RULogger")
 
 -- Load as global so other modules can access the same instance
 ToastNotification = LoadModule("Modules/ToastNotification")
@@ -50,6 +51,50 @@ end
 
 local tempTable1 = { }
 local tempTable2 = { }
+
+UITranslationsRU = LoadModule("Data/UITranslationsRU")
+-- Load additional translations from ui_strings_ru.json into the UI dictionary
+local ruJsonPath = GetScriptPath() .. "/Data/ui_strings_ru.json"
+local ruFile = io.open(ruJsonPath, "r")
+if ruFile then
+	local ruJson = ruFile:read("*all")
+	ruFile:close()
+	UITranslationsRU:LoadJSON(ruJson)
+end
+
+-- Global Display-Only UI Translation Hook
+if DrawString then
+	local raw_DrawString = DrawString
+	local raw_DrawStringWidth = DrawStringWidth
+
+	local function translateForRender(text, allowLog)
+		if not text or type(text) ~= "string" or text == "" then
+			return text
+		end
+		if not UITranslationsRU or (main and (main.uiLanguage == "EN" or (not main.uiLanguage and main.itemLanguage == "EN"))) then
+			return text
+		end
+
+		local tr = UITranslationsRU:Get(text)
+		if tr and tr ~= text then
+			return tr
+		end
+		-- Log untranslated/missed string (source: "UI", only from DrawString, not DrawStringWidth word-wrap probes)
+		if allowLog and RULogger and main and main.logUntranslatedRU then
+			RULogger.Log("UI", text)
+		end
+
+		return text
+	end
+
+	function DrawString(x, y, align, height, font, text)
+		return raw_DrawString(x, y, align, height, font, translateForRender(text, true))
+	end
+
+	function DrawStringWidth(height, font, text)
+		return raw_DrawStringWidth(height, font, translateForRender(text, false))
+	end
+end
 
 ---@diagnostic disable-next-line: lowercase-global
 ---@class Main : ControlHost
@@ -124,6 +169,12 @@ function main:Init()
 	self.showAllItemAffixes = true
 	self.disableScrollControlInteraction = false
 	self.errorReadingSettings = false
+	self.uiLanguage = "RU"
+	self.itemLanguage = "DUAL"
+	self.logUntranslatedRU = false
+	if RULogger then
+		RULogger.Init()
+	end
 	
 	if not SetDPIScaleOverridePercent then SetDPIScaleOverridePercent = function(scale) end end
 
@@ -374,6 +425,9 @@ end
 function main:Shutdown()
 	self:CallMode("Shutdown")
 	self:SaveSettings()
+	if RULogger then
+		RULogger.Shutdown()
+	end
 end
 
 function main:OnFrame()
@@ -407,6 +461,15 @@ function main:OnFrame()
 	end
 
 	self:CallMode("OnFrame", self.inputEvents, self.viewPort)
+
+	-- Periodic RULogger flush (every 2 seconds)
+	if RULogger then
+		local now = GetTime() / 1000
+		if not RULogger._lastFlush or (now - RULogger._lastFlush) >= 2.0 then
+			RULogger.Flush()
+			RULogger._lastFlush = now
+		end
+	end
 
 	if launch.updateErrMsg then
 		ToastNotification:Add(string.format("Update check failed!\n%s", launch.updateErrMsg))
@@ -574,6 +637,18 @@ function main:LoadSettings(ignoreBuild)
 					end
 				end
 			elseif node.elem == "Misc" then
+				if node.attrib.uiLanguage then
+					local ulang = node.attrib.uiLanguage
+					if ulang == "RU" or ulang == "EN" then
+						self.uiLanguage = ulang
+					end
+				end
+				if node.attrib.itemLanguage then
+					local lang = node.attrib.itemLanguage
+					if lang == "DUAL" or lang == "RU" or lang == "EN" then
+						self.itemLanguage = lang
+					end
+				end
 				if node.attrib.buildSortMode then
 					self.buildSortMode = node.attrib.buildSortMode
 				end
@@ -808,6 +883,8 @@ function main:SaveSettings()
 		showAllItemAffixes = tostring(self.showAllItemAffixes),
 		disableScrollControlInteraction = tostring(self.disableScrollControlInteraction),
 		dpiScaleOverridePercent = tostring(self.dpiScaleOverridePercent),
+		uiLanguage = self.uiLanguage or "RU",
+		itemLanguage = self.itemLanguage or "DUAL",
 	} })
 	local res, errMsg = common.xml.SaveXMLFile(setXML, self.userPath.."Settings.xml")
 	if not res then
@@ -893,7 +970,9 @@ function main:OpenOptionsPopup(savedState)
 		showAnimations = self.showAnimations,
 		showAllItemAffixes = self.showAllItemAffixes,
 		disableScrollControlInteraction = self.disableScrollControlInteraction,
-		dpiScaleOverridePercent = self.dpiScaleOverridePercent
+		dpiScaleOverridePercent = self.dpiScaleOverridePercent,
+		uiLanguage = self.uiLanguage or "RU",
+		itemLanguage = self.itemLanguage or "DUAL",
 	}
 
 	-- NOTE: Height needs to be adjusted if more menu options are added
@@ -935,6 +1014,35 @@ function main:OpenOptionsPopup(savedState)
 
 	drawSectionHeader("app", "Application options")
 
+	controls.uiLanguage = new("DropDownControl"):DropDownControl({ "TOPLEFT", controls.sectionAnchor, "TOPLEFT" }, { currentX + defaultLabelPlacementX, currentY, 200, 18 }, {
+		{ label = "Русский (Russian)", lang = "RU" },
+		{ label = "English", lang = "EN" },
+	}, function(index, value)
+		self.uiLanguage = value.lang
+	end)
+	controls.uiLanguageLabel = new("LabelControl"):LabelControl({ "RIGHT", controls.uiLanguage, "LEFT" }, { defaultLabelSpacingPx, 0, 0, 16 }, "^7UI Language:")
+	controls.uiLanguage.tooltipText = "Language of the application interface (tabs, buttons, menus, settings)."
+	controls.uiLanguage:SelByValue(savedState.uiLanguage, "lang")
+
+	nextRow()
+	controls.itemLanguage = new("DropDownControl"):DropDownControl({ "TOPLEFT", controls.sectionAnchor, "TOPLEFT" }, { currentX + defaultLabelPlacementX, currentY, 200, 18 }, {
+		{ label = "Двуязычный (RU + EN)", lang = "DUAL" },
+		{ label = "Только русский (RU)", lang = "RU" },
+		{ label = "English", lang = "EN" },
+	}, function(index, value)
+		self.itemLanguage = value.lang
+	end)
+	controls.itemLanguageLabel = new("LabelControl"):LabelControl({ "RIGHT", controls.itemLanguage, "LEFT" }, { defaultLabelSpacingPx, 0, 0, 16 }, "^7Game Language:")
+	controls.itemLanguage.tooltipText = "Language used for items, skills, mods, and passive tree nodes.\nInternal identifiers remain in English for calculation compatibility.\nDual shows Russian on the first line and English in grey on the second line."
+	controls.itemLanguage:SelByValue(savedState.itemLanguage, "lang")
+
+	nextRow()
+	controls.logUntranslatedRU = new("CheckBoxControl"):CheckBoxControl({ "TOPLEFT", controls.sectionAnchor, "TOPLEFT" }, { currentX + defaultLabelPlacementX, currentY, 20 }, "^7Log untranslated RU strings:", function(state)
+		self.logUntranslatedRU = state
+	end)
+	controls.logUntranslatedRU.state = self.logUntranslatedRU == true
+
+	nextRow()
 	controls.connectionProtocol = new("DropDownControl"):DropDownControl({ "TOPLEFT", controls.sectionAnchor, "TOPLEFT" }, { currentX + defaultLabelPlacementX, currentY, 100, 18 }, {
 		{ label = "Auto", protocol = 0 },
 		{ label = "IPv4", protocol = 1 },
@@ -1256,6 +1364,8 @@ function main:OpenOptionsPopup(savedState)
 		self.disableScrollControlInteraction = savedState.disableScrollControlInteraction
 		self.dpiScaleOverridePercent = savedState.dpiScaleOverridePercent
 		SetDPIScaleOverridePercent(self.dpiScaleOverridePercent)
+		self.uiLanguage = savedState.uiLanguage
+		self.itemLanguage = savedState.itemLanguage
 		main:ClosePopup()
 	end)
 	
@@ -1794,15 +1904,20 @@ end
 
 do
 	local wrapTable = { }
-	function main:WrapString(str, height, width)
+	function main:WrapString(str, height, width, font)
 		wipeTable(wrapTable)
 		local lineStart = 1
 		local lastSpace, lastBreak
+		local fontName = font or "VAR"
 		while true do
 			local s, e = str:find("%s+", lastSpace)
 			if not s then
 				s = #str + 1
 				e = #str + 1
+			end
+			if DrawStringWidth(height, fontName, str:sub(lineStart, s - 1)) > width and lastBreak and lastBreak >= lineStart then
+				t_insert(wrapTable, str:sub(lineStart, lastBreak))
+				lineStart = lastSpace
 			end
 			if s > #str then
 				t_insert(wrapTable, str:sub(lineStart, -1))
@@ -1810,10 +1925,6 @@ do
 			end
 			lastBreak = s - 1
 			lastSpace = e + 1
-			if DrawStringWidth(height, "VAR", str:sub(lineStart, s - 1)) > width then
-				t_insert(wrapTable, str:sub(lineStart, lastBreak))
-				lineStart = lastSpace
-			end
 		end
 		return wrapTable
 	end
