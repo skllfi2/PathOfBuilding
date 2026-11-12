@@ -218,8 +218,8 @@ end
 
 -- Resolve Fluent theme colours for the dropdown, with safe fallback.
 local function DropDownTheme()
-	local t = ThemeFluent and ThemeFluent.colors or nil
-	if not t then
+	local dd = ThemeFluent and ThemeFluent.dropdown or nil
+	if not dd then
 		return {
 			bg = { 0.1, 0.1, 0.1, 1 },
 			bgDisabled = { 0.08, 0.08, 0.08, 1 },
@@ -236,19 +236,20 @@ local function DropDownTheme()
 			},
 		}
 	end
+	local p = dd.popup or {}
 	return {
-		bg = t.dropdown.bg or { 0.1, 0.1, 0.1, 1 },
-		bgDisabled = t.dropdown.bgDisabled or { 0.08, 0.08, 0.08, 1 },
-		border = t.dropdown.border or { 0.5, 0.5, 0.5, 1 },
-		borderHover = t.dropdown.borderHover or { 1, 1, 1, 1 },
-		borderOpen = t.dropdown.borderOpen or { 1, 1, 1, 1 },
-		borderDisabled = t.dropdown.borderDisabled or { 0.33, 0.33, 0.33, 1 },
-		itemHoverBg = t.dropdown.itemHoverBg or { 0.33, 0.33, 0.33, 1 },
-		radius = t.dropdown.radius or 4,
+		bg = dd.bg or { 0.1, 0.1, 0.1, 1 },
+		bgDisabled = dd.bgDisabled or { 0.08, 0.08, 0.08, 1 },
+		border = dd.border or { 0.5, 0.5, 0.5, 1 },
+		borderHover = dd.borderHover or { 1, 1, 1, 1 },
+		borderOpen = dd.borderOpen or { 1, 1, 1, 1 },
+		borderDisabled = dd.borderDisabled or { 0.33, 0.33, 0.33, 1 },
+		itemHoverBg = dd.itemHoverBg or { 0.33, 0.33, 0.33, 1 },
+		radius = dd.radius or 4,
 		popup = {
-			bg = t.dropdown.popup.bg or { 0.1, 0.1, 0.1, 1 },
-			border = t.dropdown.popup.border or { 0.5, 0.5, 0.5, 1 },
-			radius = t.dropdown.popup.radius or 6,
+			bg = p.bg or { 0.1, 0.1, 0.1, 1 },
+			border = p.border or { 0.5, 0.5, 0.5, 1 },
+			radius = p.radius or 6,
 		},
 	}
 end

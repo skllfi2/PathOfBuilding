@@ -18,8 +18,8 @@ end
 
 -- Resolve Fluent theme colours for the edit control, with safe fallback.
 local function EditTheme()
-	local t = ThemeFluent and ThemeFluent.colors or nil
-	if not t then
+	local ed = ThemeFluent and ThemeFluent.edit or nil
+	if not ed then
 		return {
 			bg = { 0.1, 0.1, 0.1, 1 },
 			bgDisabled = { 0.08, 0.08, 0.08, 1 },
@@ -32,16 +32,17 @@ local function EditTheme()
 			radius = 4,
 		}
 	end
+	local btn = ThemeFluent and ThemeFluent.button or {}
 	return {
-		bg = t.edit.bg or { 0.1, 0.1, 0.1, 1 },
-		bgDisabled = t.edit.bgDisabled or { 0.08, 0.08, 0.08, 1 },
-		border = t.edit.border or { 0.5, 0.5, 0.5, 1 },
-		borderHover = t.edit.borderHover or { 1, 1, 1, 1 },
-		borderFocus = t.edit.borderFocus or { 1, 1, 1, 1 },
-		borderDisabled = t.edit.borderDisabled or { 0.33, 0.33, 0.33, 1 },
-		text = t.button.text or { 1, 1, 1, 1 },
-		textDisabled = t.button.textDisabled or { 0.33, 0.33, 0.33, 1 },
-		radius = t.edit.radius or 4,
+		bg = ed.bg or { 0.1, 0.1, 0.1, 1 },
+		bgDisabled = ed.bgDisabled or { 0.08, 0.08, 0.08, 1 },
+		border = ed.border or { 0.5, 0.5, 0.5, 1 },
+		borderHover = ed.borderHover or { 1, 1, 1, 1 },
+		borderFocus = ed.borderFocus or { 1, 1, 1, 1 },
+		borderDisabled = ed.borderDisabled or { 0.33, 0.33, 0.33, 1 },
+		text = btn.text or (ThemeFluent.colors and ThemeFluent.colors.textPrimary) or { 1, 1, 1, 1 },
+		textDisabled = btn.textDisabled or (ThemeFluent.colors and ThemeFluent.colors.textDisabled) or { 0.33, 0.33, 0.33, 1 },
+		radius = ed.radius or 4,
 	}
 end
 

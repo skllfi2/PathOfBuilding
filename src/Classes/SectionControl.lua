@@ -16,8 +16,8 @@ end
 
 -- Resolve Fluent theme colours for the section, with safe fallback.
 local function SectionTheme()
-	local t = ThemeFluent and ThemeFluent.colors or nil
-	if not t then
+	local sec = ThemeFluent and ThemeFluent.section or nil
+	if not sec then
 		return {
 			bg = { 0.16, 0.16, 0.17, 1 },
 			border = { 0.5, 0.5, 0.5, 1 },
@@ -27,11 +27,11 @@ local function SectionTheme()
 		}
 	end
 	return {
-		bg = t.section.bg or { 0.16, 0.16, 0.17, 1 },
-		border = t.section.border or { 0.5, 0.5, 0.5, 1 },
-		labelBg = t.section.labelBg or { 0.16, 0.16, 0.17, 1 },
-		labelText = t.section.labelText or { 1, 1, 1, 1 },
-		radius = t.section.radius or 4,
+		bg = sec.bg or { 0.16, 0.16, 0.17, 1 },
+		border = sec.border or { 0.5, 0.5, 0.5, 1 },
+		labelBg = sec.labelBg or { 0.16, 0.16, 0.17, 1 },
+		labelText = sec.labelText or { 1, 1, 1, 1 },
+		radius = sec.radius or 4,
 	}
 end
 

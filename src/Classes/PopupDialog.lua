@@ -17,8 +17,8 @@ end
 
 -- Resolve Fluent theme colours for the dialog, with safe fallback.
 local function DialogTheme()
-	local t = ThemeFluent and ThemeFluent.colors or nil
-	if not t then
+	local dlg = ThemeFluent and ThemeFluent.dialog or nil
+	if not dlg then
 		return {
 			bg = { 0.16, 0.16, 0.17, 1 },
 			border = { 0.5, 0.5, 0.5, 1 },
@@ -28,11 +28,11 @@ local function DialogTheme()
 		}
 	end
 	return {
-		bg = t.dialog.bg or { 0.16, 0.16, 0.17, 1 },
-		border = t.dialog.border or { 0.5, 0.5, 0.5, 1 },
-		title = t.dialog.title or { 1, 1, 1, 1 },
-		radius = t.dialog.radius or 8,
-		shadowBlur = t.dialog.shadowBlur or 10,
+		bg = dlg.bg or { 0.16, 0.16, 0.17, 1 },
+		border = dlg.border or { 0.5, 0.5, 0.5, 1 },
+		title = dlg.title or { 1, 1, 1, 1 },
+		radius = dlg.radius or 8,
+		shadowBlur = dlg.shadowBlur or 10,
 	}
 end
 

@@ -47,8 +47,8 @@ end
 
 -- Resolve Fluent theme colours for the button, with safe fallback.
 local function ButtonTheme()
-	local t = ThemeFluent and ThemeFluent.colors or nil
-	if not t then
+	local b = ThemeFluent and ThemeFluent.button or nil
+	if not b then
 		return {
 			bg = { 0.1, 0.1, 0.1, 1 },
 			bgHover = { 0.15, 0.15, 0.15, 1 },
@@ -64,17 +64,17 @@ local function ButtonTheme()
 		}
 	end
 	return {
-		bg = t.button.bg or { 0.1, 0.1, 0.1, 1 },
-		bgHover = t.button.bgHover or { 0.15, 0.15, 0.15, 1 },
-		bgPressed = t.button.bgPressed or { 0.08, 0.08, 0.08, 1 },
-		bgDisabled = t.button.bgDisabled or { 0.08, 0.08, 0.08, 1 },
-		border = t.button.border or { 0.5, 0.5, 0.5, 1 },
-		borderHover = t.button.borderHover or { 1, 1, 1, 1 },
-		borderPressed = t.button.borderPressed or { 1, 1, 1, 1 },
-		borderDisabled = t.button.borderDisabled or { 0.33, 0.33, 0.33, 1 },
-		text = t.button.text or { 1, 1, 1, 1 },
-		textDisabled = t.button.textDisabled or { 0.33, 0.33, 0.33, 1 },
-		radius = t.button.radius or 4,
+		bg = b.bg or { 0.1, 0.1, 0.1, 1 },
+		bgHover = b.bgHover or { 0.15, 0.15, 0.15, 1 },
+		bgPressed = b.bgPressed or { 0.08, 0.08, 0.08, 1 },
+		bgDisabled = b.bgDisabled or { 0.08, 0.08, 0.08, 1 },
+		border = b.border or { 0.5, 0.5, 0.5, 1 },
+		borderHover = b.borderHover or { 1, 1, 1, 1 },
+		borderPressed = b.borderPressed or { 1, 1, 1, 1 },
+		borderDisabled = b.borderDisabled or { 0.33, 0.33, 0.33, 1 },
+		text = b.text or { 1, 1, 1, 1 },
+		textDisabled = b.textDisabled or { 0.33, 0.33, 0.33, 1 },
+		radius = b.radius or 4,
 	}
 end
 

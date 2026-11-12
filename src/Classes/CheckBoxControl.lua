@@ -46,8 +46,8 @@ end
 
 -- Resolve Fluent theme colours for the checkbox, with safe fallback.
 local function CheckBoxTheme()
-	local t = ThemeFluent and ThemeFluent.colors or nil
-	if not t then
+	local cb = ThemeFluent and ThemeFluent.checkbox or nil
+	if not cb then
 		return {
 			bgChecked = { 0.75, 0.75, 0.75, 1 },
 			bgCheckedHover = { 1, 1, 1, 1 },
@@ -62,16 +62,16 @@ local function CheckBoxTheme()
 		}
 	end
 	return {
-		bgChecked = t.checkbox.bgChecked or { 0.75, 0.75, 0.75, 1 },
-		bgCheckedHover = t.checkbox.bgCheckedHover or { 1, 1, 1, 1 },
-		bgCheckedPressed = t.checkbox.bgCheckedPressed or { 0.5, 0.5, 0.5, 1 },
-		bgUnchecked = t.checkbox.bgUnchecked or { 0.1, 0.1, 0.1, 1 },
-		bgDisabled = t.checkbox.bgDisabled or { 0.08, 0.08, 0.08, 1 },
-		border = t.checkbox.border or { 0.5, 0.5, 0.5, 1 },
-		borderHover = t.checkbox.borderHover or { 1, 1, 1, 1 },
-		borderDisabled = t.checkbox.borderDisabled or { 0.33, 0.33, 0.33, 1 },
-		check = t.checkbox.check or { 0, 0, 0, 1 },
-		radius = t.checkbox.radius or 3,
+		bgChecked = cb.bgChecked or { 0.75, 0.75, 0.75, 1 },
+		bgCheckedHover = cb.bgCheckedHover or { 1, 1, 1, 1 },
+		bgCheckedPressed = cb.bgCheckedPressed or { 0.5, 0.5, 0.5, 1 },
+		bgUnchecked = cb.bgUnchecked or { 0.1, 0.1, 0.1, 1 },
+		bgDisabled = cb.bgDisabled or { 0.08, 0.08, 0.08, 1 },
+		border = cb.border or { 0.5, 0.5, 0.5, 1 },
+		borderHover = cb.borderHover or { 1, 1, 1, 1 },
+		borderDisabled = cb.borderDisabled or { 0.33, 0.33, 0.33, 1 },
+		check = cb.check or { 0, 0, 0, 1 },
+		radius = cb.radius or 3,
 	}
 end
 

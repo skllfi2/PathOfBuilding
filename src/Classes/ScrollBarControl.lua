@@ -20,8 +20,8 @@ end
 
 -- Resolve Fluent theme colours for the scrollbar, with safe fallback.
 local function ScrollBarTheme()
-	local t = ThemeFluent and ThemeFluent.colors or nil
-	if not t then
+	local sb = ThemeFluent and ThemeFluent.scrollbar or nil
+	if not sb then
 		return {
 			thumb = { 1, 1, 1, 0.35 },
 			thumbHover = { 1, 1, 1, 0.55 },
@@ -34,14 +34,14 @@ local function ScrollBarTheme()
 		}
 	end
 	return {
-		thumb = t.scrollbar.thumb or { 1, 1, 1, 0.35 },
-		thumbHover = t.scrollbar.thumbHover or { 1, 1, 1, 0.55 },
-		thumbDrag = t.scrollbar.thumbDrag or { 1, 1, 1, 0.65 },
+		thumb = sb.thumb or { 1, 1, 1, 0.35 },
+		thumbHover = sb.thumbHover or { 1, 1, 1, 0.55 },
+		thumbDrag = sb.thumbDrag or { 1, 1, 1, 0.65 },
 		track = { 0.15, 0.15, 0.15, 1 },
 		trackHover = { 0.25, 0.25, 0.25, 1 },
-		border = t.scrollbar.border or { 0.5, 0.5, 0.5, 1 },
+		border = sb.border or { 0.5, 0.5, 0.5, 1 },
 		borderDisabled = { 0.33, 0.33, 0.33, 1 },
-		radius = t.scrollbar.radius or 3,
+		radius = sb.radius or 3,
 	}
 end
 

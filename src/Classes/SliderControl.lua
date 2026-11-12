@@ -19,8 +19,8 @@ end
 
 -- Resolve Fluent theme colours for the slider, with safe fallback.
 local function SliderTheme()
-	local t = ThemeFluent and ThemeFluent.colors or nil
-	if not t then
+	local sl = ThemeFluent and ThemeFluent.slider or nil
+	if not sl then
 		return {
 			trackBg = { 0.1, 0.1, 0.1, 1 },
 			trackBorder = { 0.5, 0.5, 0.5, 1 },
@@ -38,19 +38,19 @@ local function SliderTheme()
 		}
 	end
 	return {
-		trackBg = t.slider.trackBg or { 0.1, 0.1, 0.1, 1 },
-		trackBorder = t.slider.trackBorder or { 0.5, 0.5, 0.5, 1 },
-		trackBorderHover = t.slider.trackBorderHover or { 1, 1, 1, 1 },
-		trackDisabledBg = t.slider.trackDisabledBg or { 0.08, 0.08, 0.08, 1 },
-		trackDisabledBorder = t.slider.trackDisabledBorder or { 0.33, 0.33, 0.33, 1 },
-		trackFill = t.slider.trackFill or { 0.83, 0.69, 0.22, 1 },
-		tick = t.slider.tick or { 0.33, 0.33, 0.33, 1 },
-		knob = t.slider.knob or { 1, 1, 1, 1 },
-		knobBorder = t.slider.knobBorder or { 0.5, 0.5, 0.5, 1 },
-		knobBorderActive = t.slider.knobBorderActive or { 1, 1, 1, 1 },
-		arrow = t.slider.arrow or { 0.66, 0.66, 0.66, 1 },
-		arrowActive = t.slider.arrowActive or { 1, 1, 1, 1 },
-		radius = t.slider.radius or 3,
+		trackBg = sl.trackBg or { 0.1, 0.1, 0.1, 1 },
+		trackBorder = sl.trackBorder or { 0.5, 0.5, 0.5, 1 },
+		trackBorderHover = sl.trackBorderHover or { 1, 1, 1, 1 },
+		trackDisabledBg = sl.trackDisabledBg or { 0.08, 0.08, 0.08, 1 },
+		trackDisabledBorder = sl.trackDisabledBorder or { 0.33, 0.33, 0.33, 1 },
+		trackFill = sl.trackFill or { 0.83, 0.69, 0.22, 1 },
+		tick = sl.tick or { 0.33, 0.33, 0.33, 1 },
+		knob = sl.knob or { 1, 1, 1, 1 },
+		knobBorder = sl.knobBorder or { 0.5, 0.5, 0.5, 1 },
+		knobBorderActive = sl.knobBorderActive or { 1, 1, 1, 1 },
+		arrow = sl.arrow or { 0.66, 0.66, 0.66, 1 },
+		arrowActive = sl.arrowActive or { 1, 1, 1, 1 },
+		radius = sl.radius or 3,
 	}
 end
 
