@@ -19,6 +19,12 @@ local JEWEL_RADIUS_TINT_PRIMARY_ONLY = { 1, 0, 0, 0.7 }
 local JEWEL_RADIUS_TINT_COMPARE_ONLY = { 0, 1, 0, 0.7 }
 
 local gemTooltip = require("Classes.GemTooltip")
+local TreeNodesRU = LoadModule("Data/TreeNodesRU")
+local utf8 = require('lua-utf8')
+local function toLowerStr(s)
+	if not s then return "" end
+	return (utf8 and utf8.lower) and utf8.lower(s) or s:lower()
+end
 
 local function isAbyssConquered(node)
 	local conqueror = node and node.conqueredBy and node.conqueredBy.conqueror
@@ -1362,11 +1368,23 @@ function PassiveTreeViewClass:DoesNodeMatchSearchParams(node)
 		return false
 	end
 
-	-- Check node name
+	-- Check node name (EN)
 	err, needMatches = PCall(search, node.dn:lower(), needMatches)
 	if err then return false end
 	if #needMatches == 0 then
 		return true
+	end
+
+	-- Check node Russian name (TreeNodesRU)
+	if TreeNodesRU then
+		local ru = TreeNodesRU:Get(node)
+		if ru and ru ~= node.dn then
+			err, needMatches = PCall(search, toLowerStr(ru), needMatches)
+			if err then return false end
+			if #needMatches == 0 then
+				return true
+			end
+		end
 	end
 
 	-- Check node description
@@ -1427,12 +1445,21 @@ function PassiveTreeViewClass:AddNodeName(tooltip, node, build)
 	else
 		tooltip.tooltipHeader = tooltipMap[node.type] or "UNKNOWN"
 	end
-	local nodeName = node.dn
-	if main.showFlavourText then
-		nodeName = "^xF8E6CA" .. node.dn
-	end
+	local itemLang = (main and main.itemLanguage) or "DUAL"
+	local ruName = (itemLang ~= "EN" and TreeNodesRU) and TreeNodesRU:Get(node) or nil
+	local colorPrefix = main.showFlavourText and "^xF8E6CA" or ""
 	tooltip.center = true
-	tooltip:AddLine(24, nodeName..(launch.devModeAlt and " ["..node.id.."]" or ""), "FONTIN")
+	if launch.devModeAlt then
+		tooltip:AddLine(24, colorPrefix .. node.dn .. " ["..node.id.."]", "FONTIN")
+	elseif itemLang == "RU" then
+		tooltip:AddLine(24, colorPrefix .. (ruName or node.dn), "FONTIN")
+	elseif itemLang == "DUAL" and ruName and ruName ~= node.dn then
+		-- Dual mode: Russian name on top, English original beneath in grey ^8
+		tooltip:AddLine(22, colorPrefix .. ruName, "FONTIN")
+		tooltip:AddLine(16, "^8(" .. node.dn .. ")", "FONTIN SC")
+	else
+		tooltip:AddLine(24, colorPrefix .. node.dn, "FONTIN")
+	end
 	tooltip.center = false
 	if launch.devModeAlt and node.id > 65535 then
 		-- Decompose cluster node Id
