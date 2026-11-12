@@ -10,6 +10,50 @@ local m_ceil = math.ceil
 ---@class SliderControl: Control, TooltipHost
 local SliderClass = newClass("SliderControl", "Control", "TooltipHost")
 
+-- Fluent theme support (safe degradation: nil if module not yet loaded)
+local ThemeFluent = nil
+local okTheme, resTheme = pcall(function() return LoadModule("Modules/ThemeFluent") end)
+if okTheme and type(resTheme) == "table" then
+	ThemeFluent = resTheme
+end
+
+-- Resolve Fluent theme colours for the slider, with safe fallback.
+local function SliderTheme()
+	local t = ThemeFluent and ThemeFluent.colors or nil
+	if not t then
+		return {
+			trackBg = { 0.1, 0.1, 0.1, 1 },
+			trackBorder = { 0.5, 0.5, 0.5, 1 },
+			trackBorderHover = { 1, 1, 1, 1 },
+			trackDisabledBg = { 0.08, 0.08, 0.08, 1 },
+			trackDisabledBorder = { 0.33, 0.33, 0.33, 1 },
+			trackFill = { 0.83, 0.69, 0.22, 1 },
+			tick = { 0.33, 0.33, 0.33, 1 },
+			knob = { 1, 1, 1, 1 },
+			knobBorder = { 0.5, 0.5, 0.5, 1 },
+			knobBorderActive = { 1, 1, 1, 1 },
+			arrow = { 0.66, 0.66, 0.66, 1 },
+			arrowActive = { 1, 1, 1, 1 },
+			radius = 3,
+		}
+	end
+	return {
+		trackBg = t.slider.trackBg or { 0.1, 0.1, 0.1, 1 },
+		trackBorder = t.slider.trackBorder or { 0.5, 0.5, 0.5, 1 },
+		trackBorderHover = t.slider.trackBorderHover or { 1, 1, 1, 1 },
+		trackDisabledBg = t.slider.trackDisabledBg or { 0.08, 0.08, 0.08, 1 },
+		trackDisabledBorder = t.slider.trackDisabledBorder or { 0.33, 0.33, 0.33, 1 },
+		trackFill = t.slider.trackFill or { 0.83, 0.69, 0.22, 1 },
+		tick = t.slider.tick or { 0.33, 0.33, 0.33, 1 },
+		knob = t.slider.knob or { 1, 1, 1, 1 },
+		knobBorder = t.slider.knobBorder or { 0.5, 0.5, 0.5, 1 },
+		knobBorderActive = t.slider.knobBorderActive or { 1, 1, 1, 1 },
+		arrow = t.slider.arrow or { 0.66, 0.66, 0.66, 1 },
+		arrowActive = t.slider.arrowActive or { 1, 1, 1, 1 },
+		radius = t.slider.radius or 3,
+	}
+end
+
 function SliderClass:SliderControl(anchor, rect, changeFunc, scrollWheelSpeedTbl)
 	self:Control(anchor, rect)
 	self:TooltipHost()
@@ -80,6 +124,8 @@ function SliderClass:Draw(viewPort)
 	local width, height = self:GetSize()
 	local enabled = self:IsEnabled()
 	local knobTravel = self:GetKnobTravel()
+	local theme = SliderTheme()
+
 	if self.dragging and not IsKeyDown("LEFTBUTTON") then
 		self.dragging = false
 	end
@@ -88,27 +134,44 @@ function SliderClass:Draw(viewPort)
 		self:SetValFromKnobX((cursorX - self.dragCX) + self.dragKnobX)
 	end
 	local mOver, mOverComp = self:IsMouseOver()
+
+	-- Choose colours by state
+	local trackBg, trackBorder, knobColor
 	if not enabled then
-		SetDrawColor(0.33, 0.33, 0.33)
+		trackBg, trackBorder, knobColor = theme.trackDisabledBg, theme.trackDisabledBorder, { 0.33, 0.33, 0.33, 1 }
 	elseif self.dragging or mOver then
-		SetDrawColor(1, 1, 1)
+		trackBg, trackBorder, knobColor = theme.trackBg, theme.trackBorderHover, theme.knobBorderActive
 	else
-		SetDrawColor(0.5, 0.5, 0.5)
+		trackBg, trackBorder, knobColor = theme.trackBg, theme.trackBorder, theme.knobBorder
 	end
-	DrawImage(nil, x, y, width, height)
-	SetDrawColor(0, 0, 0)
-	DrawImage(nil, x + 1, y + 1, width - 2, height - 2)
+
+	-- Draw track with Fluent rounded box + safe DrawControlBox degradation
+	if type(DrawControlBox) == "function" then
+		DrawControlBox(x, y, width, height, theme.radius, trackBg, trackBorder, 1, 0)
+	else
+		if not enabled then
+			SetDrawColor(0.33, 0.33, 0.33)
+		elseif self.dragging or mOver then
+			SetDrawColor(1, 1, 1)
+		else
+			SetDrawColor(0.5, 0.5, 0.5)
+		end
+		DrawImage(nil, x, y, width, height)
+		SetDrawColor(0, 0, 0)
+		DrawImage(nil, x + 1, y + 1, width - 2, height - 2)
+	end
+
 	if enabled then
 		if self.divCount then
-			SetDrawColor(0.33, 0.33, 0.33)
+			SetDrawColor(unpack(theme.tick))
 			for d = 0, knobTravel + 0.5, knobTravel / self.divCount do
 				DrawImage(nil, x + self.knobSize/2 + d, y + 1, 2, height - 2)
 			end
 		end
 		if self.dragging or mOverComp == "KNOB" then
-			SetDrawColor(1, 1, 1)
+			SetDrawColor(unpack(theme.arrowActive))
 		else
-			SetDrawColor(0.5, 0.5, 0.5)
+			SetDrawColor(unpack(theme.arrow))
 		end
 		local knobX = self:GetKnobXForVal()
 		if self.divCount then
@@ -116,7 +179,10 @@ function SliderClass:Draw(viewPort)
 			main:DrawArrow(x + 1 + knobX + self.knobSize/2, y + height/2 - arrowHeight/2, self.knobSize, arrowHeight, "UP")
 			main:DrawArrow(x + 1 + knobX + self.knobSize/2, y + height/2 + arrowHeight/2, self.knobSize, arrowHeight, "DOWN")
 		else
+			SetDrawColor(unpack(theme.knob))
 			DrawImage(nil, x + 2 + knobX, y + 2, self.knobSize - 2, self.knobSize - 2)
+			SetDrawColor(unpack(knobColor))
+			DrawImage(nil, x + 2 + knobX, y + 2, self.knobSize - 2, self.knobSize - 2, 1) -- knob border via outline
 		end
 	end
 	if enabled and (mOver or self.dragging) then

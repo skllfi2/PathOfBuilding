@@ -11,6 +11,40 @@ local m_floor = math.floor
 ---@class ScrollBarControl: Control
 local ScrollBarClass = newClass("ScrollBarControl", "Control")
 
+-- Fluent theme support (safe degradation: nil if module not yet loaded)
+local ThemeFluent = nil
+local okTheme, resTheme = pcall(function() return LoadModule("Modules/ThemeFluent") end)
+if okTheme and type(resTheme) == "table" then
+	ThemeFluent = resTheme
+end
+
+-- Resolve Fluent theme colours for the scrollbar, with safe fallback.
+local function ScrollBarTheme()
+	local t = ThemeFluent and ThemeFluent.colors or nil
+	if not t then
+		return {
+			thumb = { 1, 1, 1, 0.35 },
+			thumbHover = { 1, 1, 1, 0.55 },
+			thumbDrag = { 1, 1, 1, 0.65 },
+			track = { 0.15, 0.15, 0.15, 1 },
+			trackHover = { 0.25, 0.25, 0.25, 1 },
+			border = { 0.5, 0.5, 0.5, 1 },
+			borderDisabled = { 0.33, 0.33, 0.33, 1 },
+			radius = 3,
+		}
+	end
+	return {
+		thumb = t.scrollbar.thumb or { 1, 1, 1, 0.35 },
+		thumbHover = t.scrollbar.thumbHover or { 1, 1, 1, 0.55 },
+		thumbDrag = t.scrollbar.thumbDrag or { 1, 1, 1, 0.65 },
+		track = { 0.15, 0.15, 0.15, 1 },
+		trackHover = { 0.25, 0.25, 0.25, 1 },
+		border = t.scrollbar.border or { 0.5, 0.5, 0.5, 1 },
+		borderDisabled = { 0.33, 0.33, 0.33, 1 },
+		radius = t.scrollbar.radius or 3,
+	}
+end
+
 function ScrollBarClass:ScrollBarControl(anchor, rect, step, dir, autoHide)
 	self:Control(anchor, rect)
 	self.step = step or self.width * 2
@@ -116,6 +150,8 @@ function ScrollBarClass:Draw()
 	local enabled = self:IsEnabled()
 	local mOver, mOverComp = self:IsMouseOver()
 	local dir = self.dir
+	local theme = ScrollBarTheme()
+
 	if not IsKeyDown("LEFTBUTTON") then
 		self.dragging = false
 	end
@@ -151,101 +187,95 @@ function ScrollBarClass:Draw()
 			self.holdPauseTime = GetTime()
 		end
 	end
-	-- Draw up/left button background
+
+	-- Choose colours by state
+	local bgColor, innerColor, arrowColor, slideColor
 	if not enabled then
-		SetDrawColor(0.33, 0.33, 0.33)
+		bgColor = { 0.33, 0.33, 0.33, 1 }
+		innerColor = { 0, 0, 0, 1 }
+		arrowColor = { 0.33, 0.33, 0.33, 1 }
+		slideColor = { 0.33, 0.33, 0.33, 1 }
 	elseif mOverComp == "UP" then
-		SetDrawColor(1, 1, 1)
+		bgColor = { 1, 1, 1, 1 }
+		innerColor = { 0.33, 0.33, 0.33, 1 }
+		arrowColor = { 1, 1, 1, 1 }
+		slideColor = theme.trackHover
+	elseif mOverComp == "DOWN" then
+		bgColor = { 1, 1, 1, 1 }
+		innerColor = { 0.33, 0.33, 0.33, 1 }
+		arrowColor = { 1, 1, 1, 1 }
+		slideColor = theme.trackHover
+	elseif mOverComp == "KNOB" or mOverComp == "SLIDEUP" or mOverComp == "SLIDEDOWN" or self.dragging then
+		bgColor = { 1, 1, 1, 1 }
+		innerColor = { 0, 0, 0, 1 }
+		arrowColor = { 1, 1, 1, 1 }
+		slideColor = { 1, 1, 1, 1 }
 	else
-		SetDrawColor(0.5, 0.5, 0.5)
+		bgColor = { 0.5, 0.5, 0.5, 1 }
+		innerColor = { 0, 0, 0, 1 }
+		arrowColor = { 0.5, 0.5, 0.5, 1 }
+		slideColor = { 0.5, 0.5, 0.5, 1 }
 	end
+
+	-- Draw up/left button background
+	SetDrawColor(unpack(bgColor))
 	if dir == "HORIZONTAL" then
 		DrawImage(nil, x, y, height, height)
 	else
 		DrawImage(nil, x, y, width, width)
 	end
-	if enabled and mOverComp == "UP" then
-		SetDrawColor(0.33, 0.33, 0.33)
-	else
-		SetDrawColor(0, 0, 0)
-	end
+	SetDrawColor(unpack(innerColor))
 	if dir == "HORIZONTAL" then
 		DrawImage(nil, x + 1, y + 1, height - 2, height - 2)
 	else
 		DrawImage(nil, x + 1, y + 1, width - 2, width - 2)
 	end
 	-- Draw up/left arrow
-	if not enabled then
-		SetDrawColor(0.33, 0.33, 0.33)
-	elseif mOverComp == "UP" then
-		SetDrawColor(1, 1, 1)
-	else
-		SetDrawColor(0.5, 0.5, 0.5)
-	end
+	SetDrawColor(unpack(arrowColor))
 	if dir == "HORIZONTAL" then
 		main:DrawArrow(x + height/2, y + height/2, height/2, height/2, "LEFT")
 	else
 		main:DrawArrow(x + width/2, y + width/2, width/2, width/2, "UP")
 	end
 	-- Draw down/right button background
-	if not enabled then
-		SetDrawColor(0.33, 0.33, 0.33)
-	elseif mOverComp == "DOWN" then
-		SetDrawColor(1, 1, 1)
-	else
-		SetDrawColor(0.5, 0.5, 0.5)
-	end
+	SetDrawColor(unpack(bgColor))
 	if dir == "HORIZONTAL" then
 		DrawImage(nil, x + width - height, y, height, height)
 	else
 		DrawImage(nil, x, y + height - width, width, width)
 	end
-	if enabled and mOverComp == "DOWN" then
-		SetDrawColor(0.33, 0.33, 0.33)
-	else
-		SetDrawColor(0, 0, 0)
-	end
+	SetDrawColor(unpack(innerColor))
 	if dir == "HORIZONTAL" then
 		DrawImage(nil, x + width - height + 1, y + 1, height - 2, height - 2)
 	else
 		DrawImage(nil, x + 1, y + height - width + 1, width - 2, width - 2)
 	end
 	-- Draw down/right arrow
-	if not enabled then
-		SetDrawColor(0.33, 0.33, 0.33)
-	elseif mOverComp == "DOWN" then
-		SetDrawColor(1, 1, 1)
-	else
-		SetDrawColor(0.5, 0.5, 0.5)
-	end
+	SetDrawColor(unpack(arrowColor))
 	if dir == "HORIZONTAL" then
 		main:DrawArrow(x + width - height/2, y + height/2, height/2, height/2, "RIGHT")
 	else
 		main:DrawArrow(x + width/2, y + height - width/2, width/2, width/2, "DOWN")
 	end
 	-- Draw slide background
-	if not enabled then
-		SetDrawColor(0.33, 0.33, 0.33)
-	elseif self.dragging or mOverComp == "KNOB" or mOverComp == "SLIDEUP" or mOverComp == "SLIDEDOWN" then
-		SetDrawColor(1, 1, 1)
-	else
-		SetDrawColor(0.5, 0.5, 0.5)
-	end
+	SetDrawColor(unpack(slideColor))
 	if dir == "HORIZONTAL" then
 		DrawImage(nil, x + height, y, width - height * 2, height)
-		SetDrawColor(0, 0, 0)
+		SetDrawColor(unpack(innerColor))
 		DrawImage(nil, x + height, y + 1, width - height * 2, height - 2)
 	else
 		DrawImage(nil, x, y + width, width, height - width * 2)
-		SetDrawColor(0, 0, 0)
+		SetDrawColor(unpack(innerColor))
 		DrawImage(nil, x + 1, y + width, width - 2, height - width * 2)
 	end
 	-- Draw knob
 	if enabled then
 		if self.dragging or mOverComp == "KNOB" then
-			SetDrawColor(1, 1, 1)
+			SetDrawColor(unpack(theme.thumbDrag))
+		elseif mOverComp == "SLIDEUP" or mOverComp == "SLIDEDOWN" then
+			SetDrawColor(unpack(theme.thumbHover))
 		else
-			SetDrawColor(0.5, 0.5, 0.5)
+			SetDrawColor(unpack(theme.thumb))
 		end
 		local knobPos = self:GetKnobPosForOffset()
 		if dir == "HORIZONTAL" then

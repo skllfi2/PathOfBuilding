@@ -11,6 +11,13 @@ local m_floor = math.floor
 ---@class DropDownControl: Control, ControlHost, TooltipHost, SearchHost
 local DropDownClass = newClass("DropDownControl", "Control", "ControlHost", "TooltipHost", "SearchHost")
 
+-- Fluent theme support (safe degradation: nil if module not yet loaded)
+local ThemeFluent = nil
+local okTheme, resTheme = pcall(function() return LoadModule("Modules/ThemeFluent") end)
+if okTheme and type(resTheme) == "table" then
+	ThemeFluent = resTheme
+end
+
 function DropDownClass:DropDownControl(anchor, rect, list, selFunc, tooltipText, ignoreSearchOrder)
 	self:Control(anchor, rect)
 	self:ControlHost()
@@ -209,6 +216,43 @@ function DropDownClass:IsMouseOver()
 	return mOver, mOverComp
 end
 
+-- Resolve Fluent theme colours for the dropdown, with safe fallback.
+local function DropDownTheme()
+	local t = ThemeFluent and ThemeFluent.colors or nil
+	if not t then
+		return {
+			bg = { 0.1, 0.1, 0.1, 1 },
+			bgDisabled = { 0.08, 0.08, 0.08, 1 },
+			border = { 0.5, 0.5, 0.5, 1 },
+			borderHover = { 1, 1, 1, 1 },
+			borderOpen = { 1, 1, 1, 1 },
+			borderDisabled = { 0.33, 0.33, 0.33, 1 },
+			itemHoverBg = { 0.33, 0.33, 0.33, 1 },
+			radius = 4,
+			popup = {
+				bg = { 0.1, 0.1, 0.1, 1 },
+				border = { 0.5, 0.5, 0.5, 1 },
+				radius = 6,
+			},
+		}
+	end
+	return {
+		bg = t.dropdown.bg or { 0.1, 0.1, 0.1, 1 },
+		bgDisabled = t.dropdown.bgDisabled or { 0.08, 0.08, 0.08, 1 },
+		border = t.dropdown.border or { 0.5, 0.5, 0.5, 1 },
+		borderHover = t.dropdown.borderHover or { 1, 1, 1, 1 },
+		borderOpen = t.dropdown.borderOpen or { 1, 1, 1, 1 },
+		borderDisabled = t.dropdown.borderDisabled or { 0.33, 0.33, 0.33, 1 },
+		itemHoverBg = t.dropdown.itemHoverBg or { 0.33, 0.33, 0.33, 1 },
+		radius = t.dropdown.radius or 4,
+		popup = {
+			bg = t.dropdown.popup.bg or { 0.1, 0.1, 0.1, 1 },
+			border = t.dropdown.popup.border or { 0.5, 0.5, 0.5, 1 },
+			radius = t.dropdown.popup.radius or 6,
+		},
+	}
+end
+
 function DropDownClass:Draw(viewPort, noTooltip)
 	local x, y = self:GetPos()
 	local width, height = self:GetSize()
@@ -249,17 +293,37 @@ function DropDownClass:Draw(viewPort, noTooltip)
 	local dropExtra = self.dropHeight + 4
 	scrollBar:SetContentDimension(lineHeight * self:GetDropCount(), self.dropHeight)
 	local dropY = self.dropUp and y - dropExtra or y + height
+
+	local theme = DropDownTheme()
+
+	-- Choose colours by state
+	local bg, border
 	if not enabled then
-		SetDrawColor(0.33, 0.33, 0.33)
-	elseif mOver or self.dropped then
-		SetDrawColor(1, 1, 1)
-	elseif self.borderFunc then
-		local r, g, b = self.borderFunc()
-		SetDrawColor(r, g, b)
+		bg, border = theme.bgDisabled, theme.borderDisabled
+	elseif self.dropped then
+		bg, border = theme.bg, theme.borderOpen
+	elseif mOver then
+		bg, border = theme.bg, theme.borderHover
 	else
-		SetDrawColor(0.5, 0.5, 0.5)
+		bg, border = theme.bg, theme.border
 	end
-	DrawImage(nil, x, y, width, height)
+
+	-- Draw body with Fluent rounded control box + safe DrawControlBox degradation
+	if type(DrawControlBox) == "function" then
+		DrawControlBox(x, y, width, height, theme.radius, bg, border, 1, 0)
+	else
+		if not enabled then
+			SetDrawColor(0.33, 0.33, 0.33)
+		elseif mOver or self.dropped then
+			SetDrawColor(1, 1, 1)
+		elseif self.borderFunc then
+			local r, g, b = self.borderFunc()
+			SetDrawColor(r, g, b)
+		else
+			SetDrawColor(0.5, 0.5, 0.5)
+		end
+		DrawImage(nil, x, y, width, height)
+	end
 	if self.dropped then
 		SetDrawLayer(nil, 5)
 		DrawImage(nil, x, dropY, self.droppedWidth, dropExtra)
@@ -344,6 +408,19 @@ function DropDownClass:Draw(viewPort, noTooltip)
 
 	-- draw dropped down part with items
 	if self.dropped then
+		-- Draw popup background with Fluent rounded box
+		if type(DrawControlBox) == "function" then
+			DrawControlBox(x, dropY, self.droppedWidth, dropExtra, theme.popup.radius, theme.popup.bg, theme.popup.border, 1, 6)
+		else
+			SetDrawLayer(nil, 5)
+			DrawImage(nil, x, dropY, self.droppedWidth, dropExtra)
+			SetDrawLayer(nil, 0)
+			SetDrawLayer(nil, 5)
+			SetDrawColor(0, 0, 0)
+			DrawImage(nil, x + 1, dropY + 1, self.droppedWidth - 2, dropExtra - 2)
+			SetDrawLayer(nil, 0)
+		end
+
 		SetDrawLayer(nil, 5)
 		self:DrawControls(viewPort)
 		width = self.droppedWidth
@@ -376,7 +453,7 @@ function DropDownClass:Draw(viewPort, noTooltip)
 				local y = (dropIndex - 1) * lineHeight - scrollBar.offset
 				-- highlight background if hovered
 				if index == self.hoverSel then
-					SetDrawColor(0.33, 0.33, 0.33)
+					SetDrawColor(unpack(theme.itemHoverBg))
 					DrawImage(nil, 0, y, width - 4, lineHeight)
 				end
 				-- highlight font color if hovered or selected

@@ -9,6 +9,42 @@ local m_floor = math.floor
 local protected_replace = "*"
 local utf8 = require('lua-utf8')
 
+-- Fluent theme support (safe degradation: nil if module not yet loaded)
+local ThemeFluent = nil
+local okTheme, resTheme = pcall(function() return LoadModule("Modules/ThemeFluent") end)
+if okTheme and type(resTheme) == "table" then
+	ThemeFluent = resTheme
+end
+
+-- Resolve Fluent theme colours for the edit control, with safe fallback.
+local function EditTheme()
+	local t = ThemeFluent and ThemeFluent.colors or nil
+	if not t then
+		return {
+			bg = { 0.1, 0.1, 0.1, 1 },
+			bgDisabled = { 0.08, 0.08, 0.08, 1 },
+			border = { 0.5, 0.5, 0.5, 1 },
+			borderHover = { 1, 1, 1, 1 },
+			borderFocus = { 1, 1, 1, 1 },
+			borderDisabled = { 0.33, 0.33, 0.33, 1 },
+			text = { 1, 1, 1, 1 },
+			textDisabled = { 0.33, 0.33, 0.33, 1 },
+			radius = 4,
+		}
+	end
+	return {
+		bg = t.edit.bg or { 0.1, 0.1, 0.1, 1 },
+		bgDisabled = t.edit.bgDisabled or { 0.08, 0.08, 0.08, 1 },
+		border = t.edit.border or { 0.5, 0.5, 0.5, 1 },
+		borderHover = t.edit.borderHover or { 1, 1, 1, 1 },
+		borderFocus = t.edit.borderFocus or { 1, 1, 1, 1 },
+		borderDisabled = t.edit.borderDisabled or { 0.33, 0.33, 0.33, 1 },
+		text = t.button.text or { 1, 1, 1, 1 },
+		textDisabled = t.button.textDisabled or { 0.33, 0.33, 0.33, 1 },
+		radius = t.edit.radius or 4,
+	}
+end
+
 local function lastLine(str)
 	local lastLineIndex = 1
 	while true do
@@ -248,17 +284,36 @@ function EditClass:Draw(viewPort, noTooltip)
 	local width, height = self:GetSize()
 	local enabled = self:IsEnabled()
 	local mOver = self:IsMouseOver()
+	local theme = EditTheme()
+
+	-- Choose colours by state
+	local bg, border
 	if not enabled then
-		SetDrawColor(0.33, 0.33, 0.33)
+		bg, border = theme.bgDisabled, theme.borderDisabled
+	elseif self.hasFocus then
+		bg, border = theme.bg, theme.borderFocus
 	elseif mOver then
-		SetDrawColor(1, 1, 1)
-	elseif self.borderFunc then
-		local r, g, b = self.borderFunc()
-		SetDrawColor(r, g, b)
+		bg, border = theme.bg, theme.borderHover
 	else
-		SetDrawColor(0.5, 0.5, 0.5)
+		bg, border = theme.bg, theme.border
 	end
-	DrawImage(nil, x, y, width, height)
+
+	-- Fluent rounded control box with safe DrawControlBox degradation
+	if type(DrawControlBox) == "function" then
+		DrawControlBox(x, y, width, height, theme.radius, bg, border, 1, 0)
+	else
+		if not enabled then
+			SetDrawColor(0.33, 0.33, 0.33)
+		elseif mOver then
+			SetDrawColor(1, 1, 1)
+		elseif self.borderFunc then
+			local r, g, b = self.borderFunc()
+			SetDrawColor(r, g, b)
+		else
+			SetDrawColor(0.5, 0.5, 0.5)
+		end
+		DrawImage(nil, x, y, width, height)
+	end
 	if not enabled then
 		SetDrawColor(0, 0, 0)
 	elseif self.hasFocus or mOver then
@@ -551,7 +606,6 @@ function EditClass:OnKeyDown(key, doubleClick)
 		self.sel = shift and (self.sel or self.caret) or nil
 		if self.caret > 1 then
 			if ctrl then
-			-- Skip leading space, then jump word
 				self.caret = self.caret - #utf8.match(self.buf:sub(1, self.caret-1), "[%s%p]*$")
 				self.caret = self.caret - #utf8.match(self.buf:sub(1, self.caret-1), "%w*$")
 			else
@@ -565,7 +619,6 @@ function EditClass:OnKeyDown(key, doubleClick)
 		self.sel = shift and (self.sel or self.caret) or nil
 		if self.caret <= #self.buf then
 			if ctrl then
-			-- Jump word, then skip trailing space,
 				self.caret = self.caret + #utf8.match(self.buf:sub(self.caret), "^%w*")
 				self.caret = self.caret + #utf8.match(self.buf:sub(self.caret), "^[%s%p]*")
 			else
@@ -596,7 +649,7 @@ function EditClass:OnKeyDown(key, doubleClick)
 		if self.lineHeight and not ctrl then
 			self.caret = self.caret + #self.buf:sub(self.caret, -1):match("[^\n]*")
 		else
-			self.caret = #self.buf + 1			
+			self.caret = #self.buf + 1
 		end
 		self.lastUndoState.caret = self.caret
 		self:ScrollCaretIntoView()

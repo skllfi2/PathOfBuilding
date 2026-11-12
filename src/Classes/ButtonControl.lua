@@ -6,6 +6,13 @@
 ---@class ButtonControl: Control, TooltipHost
 local ButtonClass = newClass("ButtonControl", "Control", "TooltipHost")
 
+-- Fluent theme support (safe degradation: nil if module not yet loaded)
+local ThemeFluent = nil
+local okTheme, resTheme = pcall(function() return LoadModule("Modules/ThemeFluent") end)
+if okTheme and type(resTheme) == "table" then
+	ThemeFluent = resTheme
+end
+
 function ButtonClass:ButtonControl(anchor, rect, label, onClick, onHover, forceTooltip)
 	self:Control(anchor, rect)
 	self:TooltipHost()
@@ -38,30 +45,84 @@ function ButtonClass:IsMouseOver()
 	return self:IsMouseInBounds()
 end
 
+-- Resolve Fluent theme colours for the button, with safe fallback.
+local function ButtonTheme()
+	local t = ThemeFluent and ThemeFluent.colors or nil
+	if not t then
+		return {
+			bg = { 0.1, 0.1, 0.1, 1 },
+			bgHover = { 0.15, 0.15, 0.15, 1 },
+			bgPressed = { 0.08, 0.08, 0.08, 1 },
+			bgDisabled = { 0.08, 0.08, 0.08, 1 },
+			border = { 0.5, 0.5, 0.5, 1 },
+			borderHover = { 1, 1, 1, 1 },
+			borderPressed = { 1, 1, 1, 1 },
+			borderDisabled = { 0.33, 0.33, 0.33, 1 },
+			text = { 1, 1, 1, 1 },
+			textDisabled = { 0.33, 0.33, 0.33, 1 },
+			radius = 4,
+		}
+	end
+	return {
+		bg = t.button.bg or { 0.1, 0.1, 0.1, 1 },
+		bgHover = t.button.bgHover or { 0.15, 0.15, 0.15, 1 },
+		bgPressed = t.button.bgPressed or { 0.08, 0.08, 0.08, 1 },
+		bgDisabled = t.button.bgDisabled or { 0.08, 0.08, 0.08, 1 },
+		border = t.button.border or { 0.5, 0.5, 0.5, 1 },
+		borderHover = t.button.borderHover or { 1, 1, 1, 1 },
+		borderPressed = t.button.borderPressed or { 1, 1, 1, 1 },
+		borderDisabled = t.button.borderDisabled or { 0.33, 0.33, 0.33, 1 },
+		text = t.button.text or { 1, 1, 1, 1 },
+		textDisabled = t.button.textDisabled or { 0.33, 0.33, 0.33, 1 },
+		radius = t.button.radius or 4,
+	}
+end
+
 function ButtonClass:Draw(viewPort, noTooltip)
 	local x, y = self:GetPos()
 	local width, height = self:GetSize()
 	local enabled = self:IsEnabled()
 	local mOver = self:IsMouseOver()
 	local locked = self:GetProperty("locked")
+
+	local theme = ButtonTheme()
+
+	-- Choose colours by state
+	local bg, border, textCol
 	if not enabled then
-		SetDrawColor(0.33, 0.33, 0.33)
-	elseif mOver or locked then
-		SetDrawColor(1, 1, 1)
-	else
-		SetDrawColor(0.5, 0.5, 0.5)
-	end
-	DrawImage(nil, x, y, width, height)
-	if not enabled then
-		SetDrawColor(0, 0, 0)
+		bg, border, textCol = theme.bgDisabled, theme.borderDisabled, theme.textDisabled
 	elseif self.clicked and mOver then
-		SetDrawColor(0.5, 0.5, 0.5)
+		bg, border, textCol = theme.bgPressed, theme.borderPressed, theme.text
 	elseif mOver or locked then
-		SetDrawColor(0.33, 0.33, 0.33)
+		bg, border, textCol = theme.bgHover, theme.borderHover, theme.text
 	else
-		SetDrawColor(0, 0, 0)
+		bg, border, textCol = theme.bg, theme.border, theme.text
 	end
-	DrawImage(nil, x + 1, y + 1, width - 2, height - 2)
+
+	-- Fluent rounded control box with safe DrawControlBox degradation
+	if type(DrawControlBox) == "function" then
+		DrawControlBox(x, y, width, height, theme.radius, bg, border, 1, 0)
+	else
+		if not enabled then
+			SetDrawColor(0.33, 0.33, 0.33)
+		elseif mOver or locked then
+			SetDrawColor(1, 1, 1)
+		else
+			SetDrawColor(0.5, 0.5, 0.5)
+		end
+		DrawImage(nil, x, y, width, height)
+		if not enabled then
+			SetDrawColor(0, 0, 0)
+		elseif self.clicked and mOver then
+			SetDrawColor(0.5, 0.5, 0.5)
+		elseif mOver or locked then
+			SetDrawColor(0.33, 0.33, 0.33)
+		else
+			SetDrawColor(0, 0, 0)
+		end
+		DrawImage(nil, x + 1, y + 1, width - 2, height - 2)
+	end
+
 	if self.image then
 		if enabled then
 			SetDrawColor(1, 1, 1)
@@ -74,11 +135,7 @@ function ButtonClass:Draw(viewPort, noTooltip)
 			DrawImage(nil, x + 1, y + 1, width - 2, height - 2)
 		end
 	end
-	if enabled then
-		SetDrawColor(1, 1, 1)
-	else
-		SetDrawColor(0.33, 0.33, 0.33)
-	end
+	SetDrawColor(unpack(textCol))
 	local label = self:GetProperty("label")
 	if label == "+" then
 		DrawImage(nil, x + width * 0.2, y + height * 0.45, width * 0.6, height * 0.1)
