@@ -164,6 +164,15 @@ function ItemDBClass:DoesItemMatchFilters(item)
 			local err, match = PCall(string.matchOrPattern, searchName, searchStr)
 			if not err and match then
 				found = true
+			elseif (main and main.itemLanguage) ~= "EN" then
+				local ItemNamesRU = LoadModule("Data/ItemNamesRU")
+				local ruName = ItemNamesRU and ItemNamesRU:Get(item)
+				if ruName then
+					local errRu, matchRu = PCall(string.matchOrPattern, ruName:lower(), searchStr)
+					if not errRu and matchRu then
+						found = true
+					end
+				end
 			end
 		end
 		if mode == 1 or mode == 3 then
@@ -329,7 +338,10 @@ end
 
 function ItemDBClass:GetRowValue(column, index, item)
 	if item and column == 1 then
-		return colorCodes[item.rarity] .. item.name
+		local isRu = (main and main.itemLanguage) ~= "EN"
+		local ItemNamesRU = LoadModule("Data/ItemNamesRU")
+		local name = isRu and (ItemNamesRU and ItemNamesRU:Get(item) or item.name) or item.name
+		return colorCodes[item.rarity] .. name
 	end
 end
 

@@ -5668,16 +5668,48 @@ ItemNamesRU.map = {
 
 --- Looks up the Russian translation for an item name.
 --- Safe fallback: returns original English name if not found.
----@param enName string|nil
+---@param enName string|table|nil
 ---@return string|nil
 function ItemNamesRU:Get(enName)
-    if not enName or type(enName) ~= "string" or enName == "" then
+    if not enName then
+        return nil
+    end
+
+    if type(enName) == "table" then
+        local title = enName.title
+        local base = enName.baseName and enName.baseName:gsub(" %(.+%)","")
+        if title and base and base ~= "" then
+            local ruTitle = self.map[title] or title
+            local ruBase = self.map[base] or base
+            return ruTitle .. ", " .. ruBase
+        elseif title then
+            return self.map[title] or title
+        elseif base then
+            return self.map[base] or base
+        elseif enName.name then
+            enName = enName.name
+        else
+            return nil
+        end
+    end
+
+    if type(enName) ~= "string" or enName == "" then
         return enName
     end
 
     local tr = self.map[enName]
     if tr then
         return tr
+    end
+
+    -- Split composite "Title, Base" (e.g. "Abberath's Hooves, Goathide Boots")
+    local title, base = enName:match("^([^,]+),%s*(.+)$")
+    if title and base then
+        local ruTitle = self.map[title]
+        local ruBase = self.map[base]
+        if ruTitle or ruBase then
+            return (ruTitle or title) .. ", " .. (ruBase or base)
+        end
     end
 
     -- Strip leading Superior / quality prefixes if present

@@ -37,6 +37,24 @@ local recipeNames = {
 	"VioletOil",
 }
 
+local oilTranslationsRU = {
+	["Clear"] = "Прозрачное",
+	["Sepia"] = "Коричневое",
+	["Amber"] = "Янтарное",
+	["Verdant"] = "Изумрудное",
+	["Teal"] = "Бирюзовое",
+	["Azure"] = "Лазурное",
+	["Indigo"] = "Индиговое",
+	["Violet"] = "Фиолетовое",
+	["Crimson"] = "Алое",
+	["Black"] = "Чёрное",
+	["Opalescent"] = "Опаловое",
+	["Silver"] = "Серебряное",
+	["Golden"] = "Золотое",
+	["Prismatic"] = "Радужное",
+	["Tainted"] = "Осквернённое",
+}
+
 -- Preload all recipe images
 local recipeImages = { }
 for _, recipeName in pairs(recipeNames) do
@@ -261,7 +279,9 @@ function TooltipClass:GetSize()
 			if #recipeNameShort > 3 and recipeNameShort:sub(-3) == "Oil" then
 				recipeNameShort = recipeNameShort:sub(1, #recipeNameShort - 3)
 			end
-			imageX = imageX + DrawStringWidth(recipeTextSize, font, recipeNameShort) + title.size * 1.25
+			local isRu = (main and main.itemLanguage) ~= "EN" or (not main.uiLanguage or main.uiLanguage ~= "EN")
+			local dispOil = (isRu and oilTranslationsRU[recipeNameShort]) or recipeNameShort
+			imageX = imageX + DrawStringWidth(recipeTextSize, font, dispOil) + title.size * 1.25
 		end
 		ttW = m_max(ttW, imageX)
 	end
@@ -376,6 +396,8 @@ function TooltipClass:CalculateColumns(ttY, ttX, ttH, ttW, viewPort)
 				if #rn > 3 and rn:sub(-3) == "Oil" then
 					rn = rn:sub(1, #rn - 3)
 				end
+				local isRu = (main and main.itemLanguage) ~= "EN" or (not main.uiLanguage or main.uiLanguage ~= "EN")
+				rn = (isRu and oilTranslationsRU[rn]) or rn
 				local textW = DrawStringWidth(recipeTextSize, font, rn)
 				local iconW = titleSize
 				table.insert(oilWidths, {rn, r, textW, iconW})

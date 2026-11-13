@@ -8,6 +8,7 @@ local m_max = math.max
 local GemNamesRU = LoadModule("Data/GemNamesRU")
 local SkillDescriptionsRU = LoadModule("Data/SkillDescriptionsRU")
 local UITranslationsRU = LoadModule("Data/UITranslationsRU")
+local ModTranslationsRU = LoadModule("Data/ModTranslationsRU")
 
 local GEM_TAGS_RU = {
 	["AoE"] = "Область",
@@ -111,11 +112,7 @@ local function addGemHeader(tooltip, gemInstance, grantedEffect)
 
 	local displayType = grantedEffect.support and "Support" or "Active"
 	if itemLang ~= "EN" and GEM_TYPES_RU[displayType] then
-		if itemLang == "DUAL" then
-			displayType = GEM_TYPES_RU[displayType] .. " (" .. displayType .. ")"
-		else
-			displayType = GEM_TYPES_RU[displayType]
-		end
+		displayType = GEM_TYPES_RU[displayType]
 	end
 	tooltip:AddLine(fontSizeBig, (colorCodes.GEMINFO or "^x6F9A98") .. iconTagIndent .. displayType, "FONTIN SC")
 	tooltip:AddSeparator(8)
@@ -307,6 +304,10 @@ local function addCommonGemInfo(tooltip, build, gemInstance, grantedEffect, addL
 		end
 		local descriptions, lineMap = build.data.describeStats(stats, grantedEffect.statDescriptionScope)
 		for _, line in ipairs(descriptions) do
+			local trLine = line
+			if itemLang ~= "EN" and ModTranslationsRU and ModTranslationsRU.Translate then
+				trLine = ModTranslationsRU:Translate(line)
+			end
 			local source = grantedEffect.statMap[lineMap[line]] or build.data.skillStatMap[lineMap[line]]
 			if source then
 				if launch.devModeAlt then
@@ -317,16 +318,16 @@ local function addCommonGemInfo(tooltip, build, gemInstance, grantedEffect, addL
 						end
 						devText = modLib.formatMod(source[1])
 					end
-					line = line .. " ^2" .. devText
+					trLine = trLine .. " ^2" .. devText
 				end
-				tooltip:AddLine(fontSizeBig, colorCodes.MAGIC .. line, "FONTIN SC")
+				tooltip:AddLine(fontSizeBig, colorCodes.MAGIC .. trLine, "FONTIN SC")
 			else
 				if launch.devModeAlt then
-					line = line .. " ^1" .. lineMap[line]
+					trLine = trLine .. " ^1" .. lineMap[line]
 				end
-				local line = colorCodes.UNSUPPORTED .. line
-				line = main.notSupportedModTooltips and (line .. main.notSupportedTooltipText) or line
-				tooltip:AddLine(fontSizeBig, line, "FONTIN SC")
+				local lineFormatted = colorCodes.UNSUPPORTED .. trLine
+				lineFormatted = main.notSupportedModTooltips and (lineFormatted .. main.notSupportedTooltipText) or lineFormatted
+				tooltip:AddLine(fontSizeBig, lineFormatted, "FONTIN SC")
 			end
 		end
 	end

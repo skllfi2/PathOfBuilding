@@ -1710,8 +1710,11 @@ function PassiveTreeViewClass:AddNodeTooltip(tooltip, node, build, returnEarly)
 	-- Reminder text
 	if node.reminderText then
 		tooltip:AddSeparator(14)
+		local ReminderTextsRU = LoadModule("Data/ReminderTextsRU")
+		local isRu = (main and main.itemLanguage) ~= "EN"
 		for _, line in ipairs(node.reminderText) do
-			tooltip:AddLine(14, "^xA0A080"..line)
+			local trLine = (isRu and ReminderTextsRU and ReminderTextsRU:Get(line)) or line
+			tooltip:AddLine(14, "^xA0A080"..trLine)
 		end
 	end
 
@@ -1886,8 +1889,11 @@ function PassiveTreeViewClass:AddCompareNodeTooltip(tooltip, node, build)
 	-- Reminder text
 	if node.reminderText then
 		tooltip:AddSeparator(14)
+		local ReminderTextsRU = LoadModule("Data/ReminderTextsRU")
+		local isRu = (main and main.itemLanguage) ~= "EN"
 		for _, line in ipairs(node.reminderText) do
-			tooltip:AddLine(14, "^xA0A080"..line)
+			local trLine = (isRu and ReminderTextsRU and ReminderTextsRU:Get(line)) or line
+			tooltip:AddLine(14, "^xA0A080"..trLine)
 		end
 	end
 

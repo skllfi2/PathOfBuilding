@@ -96,7 +96,10 @@ function ItemSlotClass:Populate()
 	for _, item in pairs(self.itemsTab.items) do
 		if self.itemsTab:IsItemValidForSlot(item, self.slotName) then
 			t_insert(self.items, item.id)
-			t_insert(self.list, colorCodes[item.rarity]..item.name)
+			local isItemRu = (main and main.itemLanguage) ~= "EN"
+			local ItemNamesRU = LoadModule("Data/ItemNamesRU")
+			local name = isItemRu and (ItemNamesRU and ItemNamesRU:Get(item) or item.name) or item.name
+			t_insert(self.list, colorCodes[item.rarity]..name)
 			if item.id == self.selItemId then
 				self.selIndex = #self.list
 			end

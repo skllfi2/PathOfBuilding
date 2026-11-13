@@ -2418,12 +2418,29 @@ function GemNamesRU:Get(gemOrName)
             return self.byGameId[gid]
         end
         local name = gemOrName.name or gemOrName.nameSpec
-        if name and self.byName[name] then
-            return self.byName[name]
+        if name then
+            if self.byName[name] then
+                return self.byName[name]
+            end
+            local vaalBase = name:match("^Vaal%s+(.+)$")
+            if vaalBase and self.byName[vaalBase] then
+                return self.byName[vaalBase] .. " ваал"
+            end
+            return name
         end
-        return name
+        return nil
     elseif t == "string" then
-        return self.byName[gemOrName] or self.byGameId[gemOrName] or gemOrName
+        if self.byName[gemOrName] then
+            return self.byName[gemOrName]
+        end
+        if self.byGameId[gemOrName] then
+            return self.byGameId[gemOrName]
+        end
+        local vaalBase = gemOrName:match("^Vaal%s+(.+)$")
+        if vaalBase and self.byName[vaalBase] then
+            return self.byName[vaalBase] .. " ваал"
+        end
+        return gemOrName
     end
     return nil
 end

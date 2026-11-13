@@ -79,18 +79,30 @@ end
 function SkillListClass:GetRowValue(column, index, socketGroup)
 	if column == 1 then
 		local label = socketGroup.displayLabel or "?"
+		local isRu = (main and main.itemLanguage) ~= "EN"
+		local isUiRu = not (main and (main.uiLanguage == "EN" or (not main.uiLanguage and main.itemLanguage == "EN")))
+		local GemNamesRU = LoadModule("Data/GemNamesRU")
+		if isRu and label ~= "?" then
+			if label == "<No active skills>" then
+				label = "<Нет активных умений>"
+			elseif GemNamesRU and GemNamesRU.Get then
+				label = GemNamesRU:Get(label) or label
+			end
+		end
 		local currentMainSkill = self.skillsTab.build.mainSocketGroup == index
 		local disabled = not socketGroup.enabled or not socketGroup.slotEnabled
 		if disabled then
 			local colour = currentMainSkill and "" or "^x7F7F7F"
-			label = colour .. label .. " (Disabled)"
+			local disabledSuffix = isUiRu and " (Отключено)" or " (Disabled)"
+			label = colour .. label .. disabledSuffix
 		end
 		if currentMainSkill then 
-			local activeLabel = disabled and " (Forced Active)" or " (Active)"
+			local activeLabel = disabled and (isUiRu and " (Принуд. активно)" or " (Forced Active)") or (isUiRu and " (Активно)" or " (Active)")
 			label = label .. colorCodes.RELIC .. activeLabel
 		end
 		if socketGroup.includeInFullDPS then 
-			label = label .. colorCodes.CUSTOM .. " (FullDPS)"
+			local fullDpsSuffix = isUiRu and " (Полн.DPS)" or " (FullDPS)"
+			label = label .. colorCodes.CUSTOM .. fullDpsSuffix
 		end
 		
 		if not socketGroup.source then

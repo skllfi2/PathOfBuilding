@@ -4405,8 +4405,8 @@ function ItemsTabClass:AddItemTooltip(tooltip, item, slot, dbMode, maxWidth, opt
 			tooltip:AddLine(fontSizeTitle, rarityCode..toUpperRu(ruTitle), "FONTIN SC")
 			tooltip:AddLine(fontSizeTitle, rarityCode..toUpperRu(ruBase), "FONTIN SC")
 			if itemLang == "DUAL" then
-				local enFull = item.title .. (cleanBase ~= "" and (" (" .. cleanBase .. ")") or "")
-				local ruFull = ruTitle .. (cleanBase ~= "" and (" (" .. ruBase .. ")") or "")
+				local enFull = item.title .. (cleanBase ~= "" and (", " .. cleanBase) or "")
+				local ruFull = ruTitle .. (cleanBase ~= "" and (", " .. ruBase) or "")
 				if enFull ~= ruFull then
 					tooltip:AddLine(fontSizeSmall, "^8(" .. enFull .. ")", "FONTIN SC")
 				end
